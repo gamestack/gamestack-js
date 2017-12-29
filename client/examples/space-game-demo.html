@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Space-Game-Demo</title>
+
+    <script src="../dist/js/Gamestack.js"></script>
+
+</head>
+<body>
+<script>
+
+    var $GS = Gamestack, Background = $GS.Background;
+
+    //player && enemy Sprite() start undefined and public
+
+    var players, enemies, backgroundStars = [], backgroundPlanets = [], backgroundNebulas = [];
+
+    //When engine is ready...
+
+    var GameAssets = {
+
+        backgroundSources:[],
+
+        sounds: {
+
+            shot: new $GS.Sound("sounds/shot.mp3")
+
+        },
+
+        weapon_animations: {
+
+            normal_bullet: new $GS.Animation({
+                src: "images/bullet.png",
+                frameSize: new $GS.Vector(22, 22, 0),
+                frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(0, 0), new $GS.Vector(0, 0))
+            })
+
+        },
+
+        damage_animations: {
+
+            explosion1: new $GS.Animation({
+                src: "images/explosions/explosion.png",
+                frameSize: new $GS.Vector(128, 128, 0),
+                frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(0, 0), new $GS.Vector(5, 4), new $GS.Vector(5, 4))
+            })
+        }
+
+    };
+
+
+    var SpaceGame = {
+
+        ticker:0,
+
+        update:function(){
+
+            this.ticker += 1;
+
+            gameWindow.camera.position.y -= 4; //constant scroll
+
+        },
+
+        addStarBackgrounds:function(){
+
+            if(this.ticker % 800 == 0)
+            {
+                var pix = Math.round(Math.random() * 12) + 1;
+
+                var planet = new Background(backgroundPlanets[pix])
+                    .ScrollFactor(0.8)
+                    .Life(1500);
+                //use the above ScrollFactor() function to create parallax scroll effect
+                //use the Life() function to control how long Sprite lasts
+
+                var posX = Math.random() * gameWindow.canvas.width,
+
+                    posY = -2000 + Math.round(gameWindow.camera.position.y * planet.scrollFactor);
+
+                var sizeFloat = 0.1 +  Math.random() * 0.9;
+
+                    planet.size = planet.size.mult(sizeFloat);
+
+                planet.position = new $GS.Vector(posX - planet.size.x / 2, posY - planet.size.y / 2);
+
+                gameWindow.add(planet, true);/*add to bottom-layer*/
+
+            }
+
+            if(this.ticker % 400 == 0)
+            {
+                var nix = Math.round(Math.random() * 12) + 1;
+
+                var nebula = new Background(backgroundNebulas[nix])
+                    .ScrollFactor(0.5)
+                    .Life(1500);
+
+                var posX = Math.random() * gameWindow.canvas.width,
+
+                    posY = -2000 + Math.round(gameWindow.camera.position.y * nebula.scrollFactor);
+
+                nebula.position = new $GS.Vector(posX, posY);
+
+                gameWindow.add(nebula, true);/*add to bottom-layer*/
+
+            }
+
+
+            var star = new Background(backgroundStars[x % 4 + 1]);
+
+            star.ScrollFactor(0.3).Life(900);
+
+            var posX = Math.random() * gameWindow.canvas.width,
+
+                posY = -200 + Math.round(gameWindow.camera.position.y * star.scrollFactor),
+
+                size = Math.random() * 30 + 10;
+
+            star.Size(size, size);
+
+            star.position = new $GS.Vector(posX, posY);
+
+            gameWindow.add(star, true); /*add to bottom-layer*/
+        }
+    };
+
+    for(var x = 1; x <= 12; x++)
+    {
+
+        if(x <= 4)
+       backgroundStars.push(new Background('images/solar_system_pack/Stars/star ('+x+').png'));
+
+        backgroundPlanets.push(new Background('images/solar_system_pack/Planets/planet ('+x+').png'));
+
+        backgroundNebulas.push(new Background('images/solar_system_pack/Nebula/nebula ('+x+').png'));
+
+    };
+
+    console.info('library is ready');
+
+    //declare some assets as Animation() and Sound()
+
+    //Instantiate a GameWindow
+
+    var gameWindow = new GameWindow();
+
+    gameWindow.canvas.style.background = 'black';
+
+    gameWindow.onUpdate(function(){
+
+        SpaceGame.update();
+
+        SpaceGame.addStarBackgrounds();
+
+        Gamestack.removeDeadObjects(); //remove any dead sprite
+
+    });
+
+    for(var y = 0; y < GameAssets.backgroundSources.length; y++)
+    {
+        var source = GameAssets.backgroundSources[y];
+
+        var posX = Math.random() * gameWindow.canvas.width,
+
+            posY = 100;
+
+        backgroundObjects.push(new Background(source).ScrollFactor(1.0).Pos(0, y * -200));
+
+        var sprite = backgroundObjects[backgroundObjects.length - 1];
+
+        gameWindow.add(sprite);
+
+    };
+
+    //private reference explosion_sequence for less typing
+
+    var explosion_sequence = GameAssets.damage_animations.explosion1;
+
+    //When exp runs...
+
+    explosion_sequence.onRun(function () {
+
+        var sound = sound || new $GS.Sound('sounds/explosion.mp3').volume(0.4);
+
+        sound.play();
+
+    });
+
+
+    /**
+     * Instantiate Sprite()'s : player and enemy...
+     */
+
+    player = new $GS.Sprite(
+        {
+            name: "player",
+            description: "The player sprite",
+            type: "player",
+            size: new $GS.Vector(90, 90, 0),
+            stats: {health: 100, magic: 1000}
+
+        }
+    );
+
+    /**
+     *
+     * set the Animation()'s and other properties
+     *
+     */
+
+    player.setAnimation(new $GS.Animation({
+        src: "images/spaceship/spinship1.png",
+        type: "player",
+        frameSize: new $GS.Vector(90, 90, 0),
+        frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(0, 0), new $GS.Vector(15, 0))
+    }));
+
+    player.selected_animation.cix = 7; //The normal-state (cix= 'frame-index') for spaceship
+
+    player.position.y = 0;
+
+    player.position.x = 0;
+
+
+
+    //instantiate enemy Sprite()
+
+    enemy = new $GS.Sprite(
+        {
+            name: "enemy",
+            description: "The enemy sprite",
+            type: "enemy",
+            size: new $GS.Vector(90, 90, 0),
+            stats: {health: 100, magic: 1000}
+        }
+    );
+
+
+    enemy.position.y = 200;
+
+    enemy.position.x = 200;
+
+    enemy.rotation.x = 180;
+
+    enemy.setAnimation(new $GS.Animation({
+        src: "images/spaceship/spinship5.png",
+        type: "enemy",
+        frameSize: new $GS.Vector(90, 90, 0),
+        frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(7, 0), new $GS.Vector(7, 0))
+    }));
+
+
+    player.noScroll = true;
+
+    enemy.noScroll = true;
+    //instantiate animation from existing animation
+
+    player.explosion_animation = new $GS.Animation(GameAssets.damage_animations.explosion1);
+
+    enemy.explosion_animation = new $GS.Animation(GameAssets.damage_animations.explosion1);
+
+    enemy.timer = 0;
+
+    //enemy has fly function
+
+    enemy.fly = function () {
+
+        if (this.position.y < 50) {
+
+            this.position.y += 1;
+
+        }
+        else {
+            this.timer++;
+
+            if (this.position.x < Math.round(Gamestack.WIDTH / 2)) {
+
+                this.accelX(0.2, 8);
+
+            }
+            else {
+
+                this.accelX(0.2, -8);
+
+            }
+
+        }
+
+    };
+
+
+    //fly function runs every update() (up to 50x per second) for enemy
+
+    enemy.onUpdate(function () {
+
+        enemy.fly();
+
+    });
+
+
+    //enemy death (explode)
+
+    enemy.explode = function () {
+
+        if (this.active) {
+
+            var explosionSize = new $GS.Vector(100, 100, 0);
+
+            var __inst = this;
+
+            this.active = false; //prevent mult-fire of explosion
+
+
+            var explosion = this.subsprite({
+
+                animation: this.explosion_animation,
+
+                size: explosionSize,
+
+                position: new $GS.Vector(this.position)
+
+            });
+
+            this.explosion_animation.onComplete(function () {
+
+                explosion.active = false;
+
+                __inst.active = false;
+
+               gameWindow.remove(explosion);
+
+               gameWindow.remove(__inst);
+
+
+            });
+
+
+            explosion.onUpdate(function (spr) {
+
+                explosion.selected_animation.continuous();
+
+            });
+
+
+        }
+        ;
+
+    }
+
+    //player shares same 'explode' function
+
+    player.explode = enemy.explode;
+
+
+
+
+    gameWindow.add(enemy);
+
+    gameWindow.add(player);
+
+
+    /**
+     *
+     * Use a SoundList to run the same sound on every shot, soundlist contains 4 instances of same sound. Reduces conflicts of attempting to play a sound that has not completed last play
+     *
+     */
+
+    var sounds = []; //sounds for sound list
+
+    for(var x = 0; x < 50; x++)
+    {
+
+        sounds.push("sounds/shot.mp3"); //same file many times to avoid overlap and failure to play
+    }
+
+    player.sounds = {
+
+        shots: new SoundList(sounds).volume(0.1)
+
+    };
+
+    //Using SoundList allows overlap of multiple Sounds:: avoid playback gaps (failure to play)
+
+
+    var button1 = new $GS.InputEvent({
+
+        btnix: 1,
+
+        gpix: 0,
+
+        callback: function (pressed) {
+
+            if (pressed)
+                alert('button_1 was pressed');
+
+        }
+
+    });
+
+    var button2 = new $GS.InputEvent({
+
+        btnix: 2,
+
+        gpix: 0,
+
+        callback: function (pressed) {
+
+            if (pressed)
+                alert('button_2 was pressed');
+
+        }
+
+    });
+
+
+    var space = new $GS.InputEvent({
+
+        keys: ["SPACE"],
+
+        callback: function (key) {
+
+            player.fire_weapon_one();
+
+        }
+
+    });
+
+    var stick1 = new $GS.InputEvent({
+        stickix: 1,
+        gpix: 0,
+
+        callback: function (x, y) {
+
+            //always runs
+
+            if(x >= 0.5) {
+
+
+                alert('stick_1 was moved at > 0.5x');
+
+            }
+
+            if(y >= 0.5)
+                alert('stick_1 was moved at > 0.5y');
+
+        }
+
+    });
+
+
+
+    var keyUp = new $GS.InputEvent({
+
+        keys: ["UP", "DOWN", "LEFT", "RIGHT", "A", "W", "S", "D"],
+
+        callback: function (key) {
+
+            //always runs
+
+            key = key.toLowerCase();
+
+            if(key == 'down' || key == 's')
+            player.fly(0, 0.75, false);
+
+            if(key == 'up'|| key == 'w')
+                player.fly(0, -0.75, false);
+
+            if(key == 'left' || key == 'a')
+                player.fly(-0.75, 0, false);
+
+            if(key == 'right' || key == 'd')
+                player.fly(0.75, 0,  false);
+
+        }
+
+    });
+
+
+
+    player.onUpdate(function(){
+
+        player.fly(0, 0, false);
+
+    });
+
+    player.fly = function(x, y, useTilt)
+    {
+
+        if (Math.abs(x) > 0.03) {
+            player.speed.x = x * 6;
+
+        }
+        else {
+            player.decel(player.speed, 'x', 0.2);
+
+        }
+
+
+        if (Math.abs(y) > 0.03) {
+            player.speed.y = y * 6;
+
+        }
+        else {
+            player.decel(player.speed, 'y', 0.2);
+
+        }
+
+        //use the x value to set the 'tilt' frame of the sprite-sheet (see image for frames)
+
+        if(useTilt) {
+            //SET THE PLAYER'S 'TILT-FRAME' (SEE SPRITESHEET)
+            player.selected_animation.cix = Math.round(7 + (x * 2));
+
+            if (player.selected_animation.cix < 0) {
+                player.selected_animation.cix = 0;
+            }
+
+            if (player.selected_animation.cix > 14) {
+                player.selected_animation.cix = 14;
+            }
+
+        }
+
+        player.selected_animation.update();
+
+
+
+    };
+
+
+    var death= new $GS.BoolEvent({
+
+        on: function(){ return player.health <= 0; }, //when health is less than or equal to zero...
+
+        callback:function() { //do this function
+
+            alert('Player health is less than zero!');
+
+        }
+
+    });
+
+
+    //Player shoots bullets
+
+    player.fire_weapon_one = function()
+    {
+
+        if (!player.normalWeaponLocked) {
+
+            //Create a 'Shot': any number of bullets shot from source with rotational disp
+
+            var basic_shot = new Shot()
+                .Animation(GameAssets.weapon_animations.normal_bullet)
+                .Size(10) //Size Unit, also may pass Gamestack.Vector(x, y, z)
+                .Velocity(20) //speed / velocity
+                .Rotation(-90) //rotation
+                .Total(4) //total bullets
+                // .JaggedMode('linear', 5, 1.5)
+                .RotDisp(25) //rot_disp per bullet (always evenly dispersed from 0 outward by rot_disp
+
+            basic_shot.life = 100;
+
+            var bulletPosition = player.position.add(new Gamestack.Vector(41, 5));
+
+          var shots = player.shoot(basic_shot.Position(bulletPosition));
+
+            var collision = new $GS.CollisionEvent(shots, enemy,
+
+                function(obj1, obj2){ obj2.explode(); }
+
+            );
+
+
+            player.normalWeaponLocked = true;
+
+
+            player.sounds.shots.playNext();
+
+            //unlock in 1/5 second
+
+            window.setTimeout(function () {
+
+                player.normalWeaponLocked = false;
+
+            }, 200);
+
+        }
+
+        var ctoffscreen = 0;
+
+        //Clean up offscreen bullets
+
+
+
+
+    };
+
+
+
+    /**
+     *
+     * @tutorial The $Q(), GameStack.js $Q() function: We can use this to intercept controller input, collision, and obj[property] > || < value (such as sprite.health < 0)
+     *
+     * @tutorial-description This allows interception of game events with short calls to the $Q() query function.
+     *
+     */
+
+
+    $Q().on('button_0', function (pressed) {
+
+        if (pressed) {
+
+            player.fire_weapon_one();
+        }
+
+    });
+
+    /**
+     * @tutorial-step Override the event stick_left of controller as follows.
+     */
+
+    $Q('.Sprite[type=player]').on('stick_left', function (x, y) {
+
+        player.fly(x,y, true/*useTilt*/); //PC controller-stick useTile=true : spaceship will tilt on x-movement
+
+    });
+
+    /**
+     * @tutorial-step Intercept the collision of two 'types' of sprite as follows
+     * -The query-call will run separately for every collision between the indicated sprite types. A padding=0.4 is also applied for the collide event
+     */
+
+    $Q('.Sprite[type=player]').on('collide[padding==0.4]', $Q('.Sprite[type=enemy]'), function (obj1, obj2) {
+
+        // console.log('A collision has occurred');
+
+        if (!obj1.dead) {
+            obj1.explode();
+
+        }
+
+        if (!obj2.dead) {
+            obj2.explode();
+
+        }
+
+    });
+
+    var collision = new $GS.CollisionEvent(player, enemy,
+
+        function(obj1, obj2){ console.info('GS-CollisionEvent'); }
+
+    );
+
+
+
+
+    /***************
+     *
+     * Call gameWindow.start()
+     *
+     * *************/
+
+    gameWindow.start();
+
+    player.selected_animation.selected_frame = player.selected_animation.frames[7];
+
+
+</script>
+
+
+</body>
+</html>

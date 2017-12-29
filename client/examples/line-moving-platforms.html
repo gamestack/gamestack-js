@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Gamestack.js - Moving Platforms</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+		<script src="../dist/js/GameStack.js"></script>
+
+		<style>
+			* {
+				box-sizing: border-box;
+				-moz-box-sizing: border-box;
+			}
+
+			body {
+				color: #000;
+				font-family:Monospace;
+				background-color: #fff;
+				margin: 0px;
+			}
+
+
+			header {
+				position: relative;
+				width: 100%;
+				height:70px;
+			}
+
+			header img {
+
+				position:fixed;
+				left:35%;
+
+				width:20%;
+
+				height:auto;
+
+				max-width:150px;
+
+				padding:4px;
+
+			}
+
+			header span
+			{
+				position:fixed;
+				left:35%;
+				margin-left:155px;
+				height:40px;
+				font-size:1.5em;
+
+				top:15px;
+
+			}
+
+			.list-item {
+				display: inline-block;
+				text-align:center;
+				margin:2em;
+				padding: 1em;
+				box-shadow: 1px 2px 4px 0px rgba(0,0,0,0.25);
+			}
+
+			.list-item .display {
+				width: 300px;
+				height: 300px;
+			}
+
+			.list-item .description {
+				color: #888;
+				font-family: sans-serif;
+				font-size: large;
+				width: 300px;
+				margin-top: 0.5em;
+			}
+
+			.screen
+			{
+				background:black;
+			}
+
+		</style>
+
+	</head>
+	<body>
+
+	<div id="info">
+		<header>
+			<img src="images/gamestack-logo.png" /> <span>:Lines and Motion</span>
+
+		</header></div>
+
+		<div id="template"  style="display:none;">
+			<div class="display" ><canvas class="screen" id="#ID"></canvas></div>
+			<div class="description">$</div>
+		</div>
+		<script>
+
+			//platform, singleFrame Sprite
+
+            var anime = new Gamestack.Animation({src:"images/platforms/bar_grey.png"}).singleFrame();
+
+			var $G = Gamestack;
+
+			//bullet or 'dot' on line --Sprite
+
+            var bulletSprite = new $G.Sprite({image:new $G.GameImage("images/bullet.png"), size:new $G.Vector(4, 4)}).singleFrame();
+
+            bulletSprite.Size(10, 10);
+
+            var lineMotionDemos = {
+
+                //Circle LineMotion
+
+                Circle:function(gw){
+
+                    return new $G.LineMotion().Eliptical(50, 200).Highlight(bulletSprite, gw.ctx, gw);
+                }
+                ,
+
+                //Box LineMotion
+
+                Box:function(gw){
+
+                    return new $G.LineMotion().Box(50, 200).Highlight(bulletSprite, gw.ctx, gw);
+
+                },
+
+                //QuadraticWave LineMotion
+
+                QuadraticWave:function(gw){
+
+                    var motion =  new $G.LineMotion().QuadraticWave(50, 200);
+
+                    motion.line.TransposeByRotation(-90).Highlight(bulletSprite, gw.ctx, gw);
+
+
+                    return motion;
+
+                },
+
+                //CubicWave LineMotion
+
+                CubicWave:function(gw){
+
+                    var motion =  new $G.LineMotion().CubicWave(50, 200);
+
+                    motion.line.TransposeByRotation(-90).Highlight(bulletSprite, gw.ctx, gw);
+
+                    return motion;
+
+                },
+
+            };
+
+            GameStack.ready(function (lib) {
+
+                init(lib);
+
+            });
+
+			function init($gs) {
+
+				canvas = document.getElementById( "c" );
+
+				var template = document.getElementById('template').innerHTML;
+
+				for ( var i =  0; i < 4; i ++ ) {
+
+				    var id = 'canv_' + i;
+
+                    var keys = Object.keys( lineMotionDemos ),
+
+                        functionKey1 = keys[i % keys.length],
+
+                        functionKey2 = i % 4 >= 2 ? 'function:Sprite.travelLineTwoWay()':'function:Sprite.travelLineOnLoop()',
+
+                        tag = functionKey2 + ' line-type:' + functionKey1;
+
+
+                    // make a list item
+					var element = document.createElement( "div" );
+					element.className = "list-item";
+					element.innerHTML = template.replace( '$', tag ).replace('#ID', id);
+
+					document.getElementsByTagName('body')[0].append(element);
+
+					var canvas = document.getElementById(id);
+
+					var gw = new $gs.GameWindow({canvas:canvas});
+
+                    var sprite = new $gs.Sprite(anime), ct = 0;
+
+                    sprite.Size(150, 25);
+
+                    var line_motion = lineMotionDemos[functionKey1](gw);
+
+                    sprite.__lineMotion = line_motion;
+
+                    //Call Sprite.travelLineTwoWay || Sprite.travelLineOnLoop
+
+                    if(i % 4 >= 2) {
+
+                        sprite.onUpdate(function (spr) {
+
+                            spr.travelLineTwoWay(spr.__lineMotion, 1 , 'quadratic', spr.size.div(2).mult(-1));
+
+                        });
+
+                    }
+                    else
+					{
+                        sprite.onUpdate(function (spr) {
+
+                            spr.travelLineOnLoop(spr.__lineMotion, 1, 'linear', spr.size.div(2).mult(-1));
+
+                        });
+
+					}
+
+                   // sprite.selected_animation = anime;
+
+                    sprite.setSize(new $gs.Vector(70, 15, 0));
+
+                    gw.add(sprite);
+
+                    gw.animate();
+
+                }
+			}
+
+		</script>
+
+	</body>
+</html>

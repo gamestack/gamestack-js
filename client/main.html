@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game-Builder Tools</title>
+    <!-- Insert this line above script imports  -->
+    <script>if (typeof module === 'object') {
+        window.module = module;
+        module = undefined;
+    }</script>
+    <script src="assets/js/jquery.js"></script>
+    <!-- Insert this line after script imports -->
+    <script>if (window.module) module = window.module;</script>
+
+</head>
+
+
+<style>
+
+    body, html {
+        background: lightgrey;
+
+        height:100%;
+
+    }
+
+    video#intro-video
+    {
+        display:none;
+
+    }
+
+    .screen-select img {
+
+        width: 200px;
+
+        height: auto;
+
+        margin-top:7px;
+
+    }
+
+    .screen-select {
+        position: relative;
+
+        padding: 5px;
+
+        float: left;
+
+        width: 220px;
+
+        margin-right: 20px;
+
+        color:#333333;
+
+    }
+
+
+
+    .screen-select a:hover {
+
+      border:2px inset #c76627;
+
+        background:silver;
+
+        color:white;
+
+    }
+
+    .screen-select span, .screen-select a {
+
+        position: relative;
+
+        color: #333333;
+
+        display: block;
+
+        text-align: center;
+
+        text-decoration: none;
+
+    }
+
+    @font-face {
+        font-family: round;
+        src: url(font/round.ttf);
+        font-weight: 400;
+    }
+
+    @font-face {
+        font-family: iceDesign;
+        src: url(font/iceDesign.ttf);
+        font-weight: 400;
+    }
+
+
+    p {
+
+        margin: 0px;
+        font-family: "Trebuchet MS", Helvetica, sans-serif;
+        font-weight: normal;
+
+        color: #333333;
+    }
+
+    #linkCase {
+        position: relative;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    #linkLeft {
+        position: relative;
+        width: 49%;
+        text-align: right;
+        font-size: 250%;
+        float: left;
+        color: grey;
+        margin: 0px;
+        padding: 0px;
+        cursor: pointer;
+        font-family: round;
+
+    }
+
+    #linkRight {
+        position: relative;
+        width: 49%;
+        text-align: left;
+        font-size: 250%;
+        float: left;
+        color: grey;
+
+        margin: 0px;
+        padding: 0px;
+        cursor: pointer;
+        font-family: round;
+    }
+
+    #linkCenter {
+        position: relative;
+        width: 100%;
+        display: block;
+        text-align: center;
+        font-size: 250%;
+        float: left;
+        color: grey;
+
+        margin: 0px;
+        padding: 0px;
+        cursor: pointer;
+        font-family: round;
+    }
+
+    #linkLeft:hover, #linkRight:hover, #linkCenter:hover {
+        color: snow;
+    }
+
+    #appTitleMain {
+        width: 100%;
+        margin-top: 9px;
+        display: block;
+        text-align: center;
+        position: relative;
+        font-size: 190%;
+        color: #333333;
+        text-shadow: 1px 1px 0 black, -1px -1px 0 black, 1px -1px 0 black,
+        -1px 1px 0 black;
+    }
+
+    .appTitleDef {
+        width: 100%;
+        display: block;
+        text-align: center;
+        position: relative;
+        font-size: 150%;
+        color: snow;
+
+        text-shadow: 1px 1px 0 blue, -1px -1px 0 blue, 1px -1px 0 blue,
+        -1px 1px 0 blue, 3px 3px 5px aqua;
+
+    }
+
+    div.screen-select {
+        display: flex;
+
+        width: 100%;
+
+        flex-wrap: wrap;
+
+        justify-content: center;
+
+    }
+
+    div.screen-select a {
+
+        margin: 10px;
+
+        padding:30px;
+
+        justify-content: center;
+
+    }
+
+    #appLogo {
+        display: block;
+
+        width: 30%;
+
+        height: auto;
+
+        text-align: center;
+
+    }
+
+    video {
+        width: 100%;
+
+        margin: 0 auto;
+
+    }
+
+    .app-section {
+
+
+        position:block;
+
+        color: #333333;
+
+
+        text-align: left;
+
+        font-size: 130%;
+
+        padding-left: 50px;
+
+        clear:both;
+    }
+
+    .app-section:after, .app-section-level2:after {
+        width: 100%;
+
+        border-bottom: 1px solid grey;
+
+    }
+
+    .push-right {
+
+        margin-left: 10%;
+
+    }
+
+
+
+    button.create {
+        float: left;
+
+        background: black;
+
+        color: white;
+
+        border: 2px inset grey;
+
+        margin-left: 5px;
+
+        margin-top: 2px;
+
+    }
+
+    p.item-name {
+        width: 100%;
+
+    }
+
+    div.object-region {
+        position: relative;
+
+    }
+
+
+    ul
+    {
+
+        position:relative;
+
+        width:150px;
+
+        left:50%;
+
+        margin-left:-100px;
+
+        color:lightgrey;
+
+        display:block;
+
+        text-align:left;
+
+        color:#333333;
+
+
+    }
+
+    ul li
+    {
+
+      text-decoration: none;
+
+        list-style-type:none;
+
+        font-size:16px;
+
+    }
+
+
+
+   .one:before
+    {
+        content: "\25D4";
+
+    }
+
+   .two:before
+    {
+        content: "\25D1";
+
+    }
+
+   .three:before
+    {
+        content: "\25D5";
+
+    }
+
+    .four:before
+    {
+        content: "\23FA";
+
+    }
+
+    table, table *
+    {
+
+        color:#333333;
+
+    }
+
+    th
+    {
+        text-align:left;
+
+        color:darkorange;
+
+    }
+
+    button.download, button.buy
+    {
+
+        position:relative;
+        min-width:200px;
+
+        background-color: #d86d2a;
+        border-radius: 6px;
+        color: #fff;
+        padding: 5px 17px;
+
+        left:50%;
+
+        margin:15px;
+
+        margin-left:-100px;
+
+    }
+
+
+    .object-container
+    {
+        position:relative;
+
+        color:#333333;
+
+        width:100%;
+
+        min-height:70px;
+
+        background:transparent;
+
+    }
+
+    p.heading
+    {
+
+        border-bottom:1px inset #333333;
+
+    }
+
+    header {
+        position: relative;
+        width: 100%;
+
+    }
+
+    header img {
+
+        height:40px;
+
+        width:auto;
+
+        padding:4px;
+
+    }
+
+    div.screen-select
+    {
+
+        overflow-x:scroll;
+
+    }
+
+    .coming-soon
+    {
+        pointer-events: none;
+        cursor: default;
+
+        opacity:1.0;
+
+    }
+
+    .coming-soon:before
+    {
+
+        position:absolute;
+
+       content:"Coming-Soon!";
+
+        opacity:1.0;
+
+        color:darkorange;
+
+        display:block;
+
+        text-align:center;
+
+        width:150px;
+
+        left:125px;
+
+        margin-left:-85px;
+
+        margin-top:-25px;
+
+    }
+
+
+    input.hidden
+    {
+        display:none;
+
+    }
+
+    #download
+    {
+        cursor:pointer;
+    }
+
+</style>
+
+<body>
+
+<header>
+    <img src="assets/images/gamestack-logo.png" />
+
+</header>
+
+<table style="width:100%">
+    <tr>
+        <th>Key</th>
+        <th>Definition</th>
+    </tr>
+    <tr>
+        <td class="one">Phase 1</td>
+        <td>Plan and Create Functionality</td>
+    </tr>
+    <tr >
+        <td class="two">Phase 2</td>
+        <td>Complete Functionality, Conduct Tests</td>
+    </tr>
+
+    <tr>
+        <td class="three">Phase 3</td>
+        <td>Refactor and Test Again</td>
+    </tr>
+
+    <tr>
+        <td class="four">Phase 4</td>
+        <td>Final Fixes, and Mark Requirement Complete</td>
+    </tr>
+</table>
+
+<br/>
+
+<div class="app-section">
+<img id="appLogo" src="assets/images/gamestack-logo.png" style="display:none;"/>
+
+<p class="heading" >Gamestack.js library + Framework</p>
+
+<div><button class="download" >Download Gamestack.js</button></div>
+
+</div>
+
+
+<div class="app-section" id="examples"><p class="heading" >Examples</p>
+    <div class="screen-select link-space"  >
+
+
+    </div>
+
+</div>
+
+
+
+
+<div class="app-section" id="engine-tutorials"><p class="heading" >Gamestack.js Engine Tutorials</p>
+    <div class="screen-select link-space"  >
+
+
+    </div>
+
+</div>
+
+
+
+
+<div class="app-section" id="tools-tutorials"><p class="heading" >Gamestack Tools Tutorials</p>
+    <div class="screen-select link-space"  >
+
+
+    </div>
+
+</div>
+
+
+
+</div>
+
+
+
+<script type="text/javascript">
+    //TODO: check local storage and cookies for member already signed in:
+    var app = {
+
+        data_url:'localhost:3137/',
+
+        devMode:false,
+
+        complete: false
+    }
+
+</script>
+
+<script type="text/javascript">
+
+    function jstr(obj) // a clean, formatted JSON.stringify, easy to call
+    {
+        return JSON.stringify(obj, null, 2);
+    };
+
+    $(document).ready(function () {
+
+    var EXAMPLE_HTML =  '<a target="_blank" href="#LINK_SRC"><span>#TITLE</span>' +
+
+            '<ul><li class="three">#DESC</li>'+
+
+            '<li class="four">#DESC2</li></ul></a>';
+
+        $.getJSON('/list-examples', function(data){
+
+            console.log(jstr(data));
+
+            $.each(data, function(ix, item){
+
+                if(item.indexOf('shell') >= 0){return;};
+
+                var my_html = EXAMPLE_HTML.replace('#TITLE', item.split('.')[0].toUpperCase());
+
+                my_html = my_html.replace('#LINK_SRC',  '/examples/' + item).replace('#DESC', '--An engine usage example').replace('#DESC2', 'Shows a Gamestack.js demo');
+
+              $('#examples').find('.link-space').append(my_html);
+
+            });
+        });
+
+    });
+
+    var main = function () {
+        //login code: just get the page from site
+        window.location.href = '/main.html';
+    }
+</script>
+
+</body>
+</html>

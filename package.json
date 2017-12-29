@@ -1,0 +1,45 @@
+{
+  "name": "gamestack-js",
+  "version": "0.8.0",
+  "description": "The javascript library for 2D games",
+  "main": "main.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "2D",
+    "games",
+    "graphics",
+    "javascript",
+    "json",
+    "data",
+    "persistence"
+  ],
+  "author": "GitHub",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "babel-cli": "^6.24.0",
+    "babel-preset-es2015": "^6.24.0",
+    "grunt": "^1.0.1",
+    "grunt-babel": "^6.0.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-init": "latest",
+    "load-grunt-tasks": "^3.5.2"
+  },
+  "directories": {
+    "doc": "client/docs"
+  },
+  "dependencies": {
+    "express": "latest",
+    "opn": "latest",
+    "stream": "latest"
+  },
+  "bin": {
+    "gs-create-game": "bin/create.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "NONE"
+  }
+}

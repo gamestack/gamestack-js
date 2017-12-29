@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Html Extras</title>
+
+    <script src="../dist/js/Gamestack.js"></script>
+
+
+    <style>
+        * {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            font-family:Monospace;
+        }
+
+        header {
+            position: relative;
+            width: 100%;
+            height:70px;
+
+        }
+
+        header img {
+
+            position:fixed;
+            left:35%;
+
+            width:20%;
+
+            height:auto;
+
+            max-width:150px;
+
+            padding:4px;
+
+        }
+
+        header span
+        {
+            position:relative;
+            left:35%;
+            margin-left:155px;
+            font-size:1.5em;
+            line-height:40px;
+            top:1.5px;
+            color:white;
+
+        }
+
+    </style>
+
+</head>
+<body style="background-color:black;">
+
+    <header>
+        <img src="images/gamestack-logo.png" /> <span>:HtmlExtras</span>
+
+    </header>
+
+<script>
+
+    GameStack.ready(function ($GS, sprites) {
+
+        console.log('Gamestack is running');
+
+       var gameWindow = new GameWindow(); //instantiate GameWindow
+
+        var bubble1 = new $GS.TextBubble()
+            .Text("Gamestack has text bubbles!")
+            .FontSize('15px')
+            .Color('black')
+            .Background('white')
+            .Duration(4000);
+
+        bubble1.Top(0.2).Left(0.3);
+
+        bubble1.show(); //show speech bubble
+
+
+        var bubble2 = new $GS.TextBubble()
+            .Text("Another TextBubble!")
+            .FontSize('15px')
+            .Color('black')
+            .Background('white')
+            .Duration(9000);
+
+        bubble2.Top(0.2).Left(0.6);
+
+        bubble2.show(); //show speech bubble
+        //Create text display:(story, subtitles)
+
+        var text = new $GS.TextDisplay({
+            fontSize: "50px",
+            text: "Text Displays are easy with GameStack.js",
+            top:0.5,
+            duration: 3000,
+            color: "orange"
+        });
+
+        text.Duration(8000);
+
+
+        var text2 = new $GS.TextDisplay({
+            fontSize: "30px",
+            text: "Use onComplete() function to display subsequent text elements.",
+            top:0.5,
+            duration: 7000,
+            color: "lightblue"
+        });
+
+        var text3 = new $GS.TextDisplay({
+            fontSize: "30px",
+            text: "(Fin)",
+            top:0.5,
+            duration: 7000,
+            color: "darkorange"
+        });
+
+        //add onComplete update for first text:
+
+        text.onComplete(function () {
+
+            text2.show();
+
+        });
+
+
+        //when text2 is complete, a third text follows
+
+        text2.onComplete(function () {
+
+            text3.show();
+
+        });
+
+        //Show the first text display --resulting in display of all 3
+
+        text.show();
+
+
+        //Show an Image/ImageStatDisplay
+
+        var items = new $GS.ImageStatDisplay({
+            size: new $GS.Vector(25, 25),
+            fontSize: "18px",
+            src: "images/items/apple.png",
+            text: "Item Count"
+        });
+
+        //Show 2nd Image/ImageStatDisplay
+
+        var items2 = new $GS.ImageStatDisplay({
+            size: new $GS.Vector(25, 25),
+            fontSize: "18px",
+            src: "images/items/apple_blue.png",
+            text: "Item Count"
+        });
+
+        items.total = 0;
+
+        items2.total = 0;
+
+        //call show::
+
+        items.show(20, 20);
+
+        //Update value::
+
+        items.update(items.total);
+
+
+        //call show::
+
+        items2.show(20, 80);
+
+        //Update value::
+
+        items2.update(items2.total);
+
+
+        window.setInterval(function(){
+
+            items.total += 1;
+
+            items2.total += 3;
+
+            items.update(items.total);
+
+            items2.update(items2.total);
+
+
+
+        }, 50)
+
+
+        var bd = new $GS.BarDisplay({
+            key: "health",
+            border: "1px inset teal",
+            fill_color: "goldenrod", //CSS Color
+            bar_src: "url(images/items/healthbar_blue.png)", //image src
+        });
+
+        bd.portion_top(0.96);
+        bd.portion_left(0.03);
+        bd.portion_width(0.1);
+        bd.portion_height(0.02);
+
+        bd.show();
+
+        //Fill / update the bar with a 0-1 portion of its width:: .75 || 75%
+        bd.update(0.75);
+
+    });
+
+</script>
+
+
+</body>
+</html>
