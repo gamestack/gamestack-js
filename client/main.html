@@ -102,6 +102,22 @@
         color: #333333;
     }
 
+    h4.center
+    {
+        width:100%;
+
+        display:block;
+
+        text-align: center;
+
+        font-size: 1.2em;
+
+        font-weight:normal;
+
+        margin-left:20px;
+
+    }
+
     #linkCase {
         position: relative;
         width: 100%;
@@ -351,7 +367,7 @@
 
     }
 
-    button.download, button.buy
+    a.download
     {
 
         position:relative;
@@ -367,6 +383,10 @@
         margin:15px;
 
         margin-left:-100px;
+
+        top:20px;
+
+        text-decoration: none;
 
     }
 
@@ -461,6 +481,13 @@
         cursor:pointer;
     }
 
+    .download-space
+    {
+
+        height:80px;
+
+    }
+
 </style>
 
 <body>
@@ -470,66 +497,22 @@
 
 </header>
 
-<table style="width:100%">
-    <tr>
-        <th>Key</th>
-        <th>Definition</th>
-    </tr>
-    <tr>
-        <td class="one">Phase 1</td>
-        <td>Plan and Create Functionality</td>
-    </tr>
-    <tr >
-        <td class="two">Phase 2</td>
-        <td>Complete Functionality, Conduct Tests</td>
-    </tr>
-
-    <tr>
-        <td class="three">Phase 3</td>
-        <td>Refactor and Test Again</td>
-    </tr>
-
-    <tr>
-        <td class="four">Phase 4</td>
-        <td>Final Fixes, and Mark Requirement Complete</td>
-    </tr>
-</table>
-
-<br/>
-
 <div class="app-section">
 <img id="appLogo" src="assets/images/gamestack-logo.png" style="display:none;"/>
 
-<p class="heading" >Gamestack.js library + Framework</p>
+<p class="heading" >Gamestack.js: The javascript library for 2D games</p>
 
-<div><button class="download" >Download Gamestack.js</button></div>
+<div class="download-space"><a class="download" href="https://github.com/gamestack/gamestack-js/blob/master/client/dist/js/Gamestack.js" download >Download Gamestack.js</a>
+
+
+</div>
+
+    <h4 class="center" >*Find Gamestack.js and Gamestack.min.js at <a href="https://github.com/gamestack/gamestack-js/tree/master/client/dist/js">https://github.com/gamestack/gamestack-js/tree/master/client/dist/js</a> </h4>
 
 </div>
 
 
 <div class="app-section" id="examples"><p class="heading" >Examples</p>
-    <div class="screen-select link-space"  >
-
-
-    </div>
-
-</div>
-
-
-
-
-<div class="app-section" id="engine-tutorials"><p class="heading" >Gamestack.js Engine Tutorials</p>
-    <div class="screen-select link-space"  >
-
-
-    </div>
-
-</div>
-
-
-
-
-<div class="app-section" id="tools-tutorials"><p class="heading" >Gamestack Tools Tutorials</p>
     <div class="screen-select link-space"  >
 
 
