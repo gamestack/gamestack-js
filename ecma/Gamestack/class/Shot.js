@@ -1,9 +1,4 @@
 
-
-
-
-
-
 class Shot
 {
     constructor(name, imageOrAnimation)
@@ -27,6 +22,7 @@ class Shot
 
         var args = name instanceof Object ? name : {};
 
+
         //is name / first arg an entire instance of shot?
 
         this.init(args);
@@ -46,7 +42,21 @@ class Shot
                     this[x] = new Vector(args[x]);
                 }
 
+
             }
+
+
+            if(typeof this.velocity =='object' && this.velocity.x)
+            {
+                this.velocity = this.velocity.x; //velocity is single number
+            }
+
+            this.size = args.size || new Gamestack.Vector(20, 20);
+
+            this.position = args.position || new Gamestack.Vector(0, 0);
+
+            this.offset = args.offset || new Gamestack.Vector(0, 0);
+
 
         }
 
@@ -110,12 +120,69 @@ class Shot
 
     Velocity(v)
     {
-        this.velocity = v;
+        if(typeof v == 'object' && v.x)
+        {
+            this.speed = v.x;
+        }
+        else {
+            this.speed = v;
+
+        }
+
+        return this;
+    }
+
+    Speed(v)
+    {
+        if(typeof v == 'object' && v.x)
+        {
+            this.speed = v.x;
+        }
+        else {
+            this.speed = v;
+
+        }
 
         return this;
     }
 
     Position(p)
+    {
+        if(typeof(p) == 'number')
+        {
+            this.position = new Gamestack.Vector(p, p, p);
+
+        }
+        else {
+
+            this.position = p;
+
+        }
+
+        return this;
+
+    }
+
+
+    Offset(o)
+    {
+        if(typeof(o) == 'number')
+        {
+            this.offset = new Gamestack.Vector(o,o,o);
+
+        }
+        else {
+
+            this.offset = o;
+
+        }
+
+        return this;
+
+    }
+
+
+    Pos(p)
     {
         if(typeof(p) == 'number')
         {

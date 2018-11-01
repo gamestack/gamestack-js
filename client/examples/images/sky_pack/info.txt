@@ -1,0 +1,1 @@
+The Graphics in this folder are licensed for end-user only as part of the Gamestack.js software product(s). Distribution and sharing of contents is not allowed.

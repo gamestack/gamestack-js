@@ -1,5 +1,8 @@
 /**
  * @author mrdoob / http://mrdoob.com/
+ *
+ * @ignore
+ *
  */
 
 var Stats = function () {

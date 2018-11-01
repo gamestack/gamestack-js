@@ -197,7 +197,7 @@ class Line
     TransposeByRotation(rotation)
     {
 
-        this.rotation = rotation;
+        this.rotation = rotation || this.rotation;
 
         function rotate(cx, cy, x, y, angle) {
             var radians = (Math.PI / 180) * angle,
@@ -222,16 +222,18 @@ class Line
 
     }
 
-    Highlight(sprite, ctx, gameWindow)
+    Highlight(sprite, gameWindow)
     {
 
         this.highlight_sprites = this.highlight_sprites || [];
 
-        ctx = ctx || Gamestack.ctx;
 
         var points = this.points;
 
         gameWindow = gameWindow || Gamestack.game_windows[0];
+
+       var ctx = gameWindow.ctx;
+
 
         for(var x in points)
         {
@@ -253,7 +255,7 @@ class Line
 
     }
 
-    RemoveHighlight(sprite, ctx, gameWindow)
+    RemoveHighlight(gameWindow)
     {
         gameWindow = gameWindow || Gamestack.game_windows[0];
 
@@ -481,7 +483,7 @@ class WaveLine extends Line
 
         var size = new Gamestack.Vector(this.curve_size || this.size);
 
-       while(Math.abs(position.x) <= Math.abs(this.max_size.x) && size.x > 2 && dist.x > 2) {
+       while(Math.abs(this.position.sub(position).x) <= Math.abs(this.max_size.x) && size.x > 2 && dist.x > 2) {
 
              position = new Gamestack.Vector(current_point);
 

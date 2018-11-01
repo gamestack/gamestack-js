@@ -5,8 +5,8 @@
     console.log('Interactive class... creating');
 
     class Interactive extends Gamestack.Sprite {
-        constructor(args = {}) {
-            super(args); //init as Gamestack.Sprite()
+        constructor(args = {}, arg2, arg3) {
+            super(args, arg2, arg3); //init as Gamestack.Sprite()
 
             this.collision_settings = new Gamestack.CollisionSettings(args);
 
@@ -37,7 +37,27 @@
     }
 
 
-Gamestack.Interactive = Interactive;
+
+    Interactive.prototype.options = function()
+    {
+        return {
+
+           collision : {
+
+            dissappear: function () {
+
+            },
+
+               stopfourway: function () {
+
+               }
+
+        }
+    }
+
+    };
+
+    Gamestack.Interactive = Interactive;
 
 
 })();

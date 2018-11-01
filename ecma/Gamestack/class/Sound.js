@@ -45,7 +45,12 @@ class Sound {
 
         }
 
+        this.sound.load();
+
         this.onLoad = this.onLoad || function () {
+
+
+
             };
 
         if (typeof(this.onLoad) == 'function') {

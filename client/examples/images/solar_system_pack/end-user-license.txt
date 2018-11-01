@@ -1,0 +1,3 @@
+The Graphics in this folder are not free to distribute. They are provided on an 'end-user' basis and are for developer evaluation only.
+
+ -Users may not distribute.

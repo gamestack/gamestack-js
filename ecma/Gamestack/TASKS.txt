@@ -1,0 +1,12 @@
+This txt file is just a list of the 2-3 most recent dev-tasks for Gamestack.js.
+
+12-29-2017:
+
+    - Add an initOptions() function to each subsprite, such that there is an option for each of the following
+
+        I. Terrain: CollideFourWa  : A collideable terrain
+        II. SideScrollerTestCharacter : Sprite runs and jumps
+        III. TestGravity(numericArgument)
+        IV. FreeFlying Sprite : Sprite flies in all directions with mouse or gamepad
+        V. TopCollideable() : Just top is collideable as in a platform
+        VI. AutoFlyingCharacter()

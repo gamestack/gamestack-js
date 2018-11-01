@@ -231,8 +231,6 @@ let GamestackEngine = function () {
 
                 var cps = c.split('_');
 
-                alert(cps);
-
                 var s1 = cps[0].toLowerCase(), s2 = cps[1].toLowerCase();
 
                 var curve = TWEEN.Easing.Linear.None;
@@ -386,14 +384,20 @@ let GamestackEngine = function () {
 
                 var paddingX = Math.round(obj1.padding.x * obj1.size.x),
 
-                    paddingY = Math.round(obj1.padding.y * obj1.size.y), left = obj1.position.x + paddingX + camPos.x,
+                    paddingY = Math.round(obj1.padding.y * obj1.size.y),
+
+                paddingX2 = Math.round(obj2.padding.x * obj2.size.x),
+
+                paddingY2 = Math.round(obj2.padding.y * obj2.size.y),
+
+                    left = obj1.position.x + paddingX + camPos.x,
 
                     right = obj1.position.x + obj1.size.x - paddingX + camPos.x,
 
                     top = obj1.position.y + camPos.y + paddingY, bottom = obj1.position.y + obj1.size.y - paddingY+ camPos.y;
 
-                if (right > obj2.position.x && left < obj2.position.x + obj2.size.x &&
-                    bottom > obj2.position.y && top < obj2.position.y + obj2.size.y) {
+                if (right > obj2.position.x + paddingX2 && left < obj2.position.x + obj2.size.x - paddingX2 &&
+                    bottom > obj2.position.y + paddingY2 && top < obj2.position.y + obj2.size.y - paddingY2) {
 
                     return true;
 
@@ -969,7 +973,7 @@ function $Q(selector) {
 
                         item1.onUpdate(function (sprite) {
 
-                            if (item1.collidesRectangular(item2, padding)) {
+                            if (item1.collidesRectangular(item2)) {
 
                                 callback(item1, item2);
 
@@ -1424,8 +1428,8 @@ Gamestack.InputSystem = {
     events:{
 
         mousemove: [],
-        leftclick:{},
-        rightclick:{},
+        leftclick:[],
+        rightclick:[],
         middleclick: [],
         wheelup: [],
         wheelDown: []
@@ -1446,6 +1450,7 @@ Gamestack.InputSystem = {
             down: false,
 
             callback: function () {
+
                 callback(evt_key);
 
             }
@@ -1460,15 +1465,17 @@ Gamestack.InputSystem = {
 
         evt_key = evt_key.toLowerCase();
 
-        Gamestack.InputSystem[evt_key] = {
+        Gamestack.InputSystem.events[evt_key] = Gamestack.InputSystem.events[evt_key] || [];
+
+        Gamestack.InputSystem.events[evt_key].push( {
 
             down: downCall,
 
             up: upCall
 
-        };
+        });
 
-        return Gamestack.InputSystem[evt_key];
+        return Gamestack.InputSystem.events[evt_key];
 
     },
 
@@ -1506,7 +1513,6 @@ Gamestack.InputSystem = {
         }
 
         var canvases = document.getElementsByTagName('CANVAS');
-
 
         function getMousePos(e, c) {
 
@@ -1546,9 +1552,11 @@ Gamestack.InputSystem = {
 
 
         for (var x = 0; x < canvases.length; x++) {
+
             var c = canvases[x];
 
             function applyMouseMove(e) {
+
                 fullMoveInputSystem(e, c);
 
             }
@@ -1567,6 +1575,7 @@ Gamestack.InputSystem = {
                 e.preventDefault();
 
                 switch (e.which) {
+
                     case 1:
 
                         for (var x in InputSystem.events) {
@@ -1759,7 +1768,7 @@ Gamestack.file_system = {
         });
     },
 
-    loadJSONLevel: function (filepath, gw, callback) {
+    loadJSONLevel: function (filepathOrJson, gw, callback) {
 
         if(typeof(gw) == 'function' || !gw)
         {
@@ -1768,12 +1777,35 @@ Gamestack.file_system = {
             gw = Gamestack.game_windows[0];
         }
 
+        if(typeof(filepathOrJson) == 'object')
+        {
 
-        $.getJSON(filepath, function (data) {
+            load(filepathOrJson);
+
+            return;
+
+        }
+        else
+        {
+
+            $.getJSON(filepathOrJson, function (data) {
+
+                load(data);
+
+
+            });
+
+            return;
+        }
+
+        function load(data)
+        {
 
             //localize .src up to three levels of recursion (.src must be altered to refer locally)
 
-            $.each(data.sprites, function (ix, xitem) {
+            data.objects = data.sprites || data.objects;
+
+            $.each(data.objects, function (ix, xitem) {
 
                 if (typeof(xitem.src) == 'string') {
 
@@ -1801,25 +1833,22 @@ Gamestack.file_system = {
 
                 });
 
-                xitem = new Gamestack.Sprite(xitem);
+                xitem = new Gamestack[xitem.__gsClassTag](xitem);
 
                 gw.add(xitem);
                 //sprite.image = sprite.selected_animation.image;
 
-
-                if (ix >= data.sprites.length - 1) {
+                if (ix >= data.objects.length - 1) {
 
                     //last sprite is loaded //WHY DOESN't this work?
 
                     callback(false, data);
                 }
 
-
-
             });
 
+            };
 
-        });
     }
 
 
@@ -1857,7 +1886,7 @@ Gamestack.ready(function (lib) {
 
 class GameWindow
 {
-    constructor({canvas = false, objects, update, camera}={})
+    constructor({canvas = false, objects, update, camera, noSize}={})
     {
         this.objects = objects || [];
 
@@ -1870,11 +1899,16 @@ class GameWindow
             document.body.append(this.canvas);
         }
 
-        document.body.style.position = "absolute";
 
-        document.body.style.width = "100%";
+        if(!noSize) {
 
-        document.body.style.height = "100%";
+            document.body.style.position = "absolute";
+
+            document.body.style.width = "100%";
+
+            document.body.style.height = "100%";
+
+        }
 
         this.camera = new Gamestack.Camera();
 
@@ -1889,15 +1923,21 @@ class GameWindow
 
         var __inst = this;
 
-        this.adjustSize();
 
         this.update_ext = [];
 
-        window.onresize = function () {
 
-            __inst.adjustSize();
+        if(!noSize) {
 
-        };
+            this.adjustSize();
+
+            window.onresize = function () {
+
+                __inst.adjustSize();
+
+            };
+
+        }
 
         this.ctx = this.canvas.getContext('2d');
 

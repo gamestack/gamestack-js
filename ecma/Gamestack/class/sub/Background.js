@@ -1,8 +1,7 @@
 class Background extends Gamestack.Sprite {
 
-    constructor(args={}) {
-
-        super(args);
+    constructor(args = {}, arg2, arg3) {
+        super(args, arg2, arg3); //init as Gamestack.Sprite()
 
         this.type = args.type || "parallax" || "basic" || false;
 

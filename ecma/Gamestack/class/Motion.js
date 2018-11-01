@@ -52,6 +52,7 @@
 
     };
 
+    Gamestack.Motion = Motion;
 
     class TweenMotion extends Motion { //tween the state of an object, including 'position', 'size', and 'rotation' --rotation.x, etc..
 
@@ -60,9 +61,6 @@
             super(args);
 
             this.getArg = $Q.getArg;
-
-            this.transition = args.trans || args.transition || "literal" || "add";
-            this.transition_options = ['literal', 'add'];
 
             if(typeof(args.curve) == 'string')
             {
@@ -73,10 +71,7 @@
 
             this.target = false;
 
-            if(args.target) {
-
-                this.target = args.target;
-            }
+            this.targetCheck();
 
             this.curvesList = this.curvesToArray(); //Tween.Easing
 
@@ -85,24 +80,22 @@
             this.delay = Gamestack.getArg(args, 'delay', 0);
         }
 
-        targetCheck(parent)
+        targetCheck()
         {
 
-            if(!this.target.position)
+            if(!this.target)
             {
-                this.target.position = new Vector();
-            }
+                this.target = {
 
-            if(!this.target.size)
-            {
-                this.target.size = new Vector();
-            }
+                    position: new Gamestack.Vector(),
 
-            if(!this.target.rotation)
-            {
-                this.target.rotation = new Vector();
-            }
+                    rotation: new Gamestack.Vector(),
 
+                    size: new Gamestack.Vector()
+
+                };
+
+            }
         }
 
         engage() {
@@ -127,48 +120,13 @@
 
             }
 
-            if(this.parent && !this.target){
-
-                this.target = {
-
-                    position: new Gamestack.Vector(this.parent.position),
-
-                    rotation: new Gamestack.Vector(this.parent.rotation),
-
-                    size: new Gamestack.Vector(this.parent.size)
-
-                };
-
-            }
-            else if (!this.target) {
-
-                this.target = {
-
-                    position: new Gamestack.Vector(),
-
-                    rotation: new Gamestack.Vector(),
-
-                    size: new Gamestack.Vector()
-
-                };
-
-            };
-
-
-            if (this.transition !== 'literal') { //transition is assumed to be additive
-
-                this.target.position = object.position.add(this.target.position);
-                this.target.rotation = object.rotation.add(this.target.rotation);
-                this.target.size = object.size.add(this.target.size);
-
-            };
 
             //we always have a targetPosition
             //construct a tween::
             this.tweens.push(new TWEEN.Tween(object.position)
                 .easing(__inst.curve || __inst.motion_curve)
 
-                .to(this.target.position, __inst.duration)
+                .to(object.position.add(this.target.position), __inst.duration)
                 .onUpdate(function () {
                     //console.log(objects[0].position.x,objects[0].position.y);
 
@@ -176,6 +134,8 @@
                 })
                 .onComplete(function () {
                     //console.log(objects[0].position.x, objects[0].position.y);
+
+
                     if (__inst.complete) {
 
                         __inst.call_on_complete(); //only call once
@@ -188,7 +148,7 @@
             this.tweens.push(new TWEEN.Tween(object.rotation)
                 .easing(__inst.curve || __inst.motion_curve)
 
-                .to(this.target.rotation, __inst.duration)
+                .to(object.rotation.add(this.target.rotation), __inst.duration)
                 .onUpdate(function () {
                     //console.log(objects[0].position.x,objects[0].position.y);
 
@@ -196,6 +156,7 @@
                 })
                 .onComplete(function () {
                     //console.log(objects[0].position.x, objects[0].position.y);
+
                     if (__inst.complete) {
 
                         __inst.call_on_complete(); //only call once
@@ -209,7 +170,7 @@
             this.tweens.push(new TWEEN.Tween(object.size)
                 .easing(__inst.curve || __inst.motion_curve)
 
-                .to(this.target.size, __inst.duration)
+                .to(object.size.add(this.target.size), __inst.duration)
                 .onUpdate(function () {
                     //console.log(objects[0].position.x,objects[0].position.y);
 
@@ -423,9 +384,9 @@
             this.Rot(args.size || new Gamestack.Vector(200, 200));
 
         }
-        Highlight(spr, ctx, gameWindow)
+        Highlight(spr, gameWindow)
         {
-            this.line.Highlight(spr, ctx, gameWindow);
+            this.line.Highlight(spr, gameWindow);
 
             return this;
         }

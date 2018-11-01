@@ -35,6 +35,40 @@ Gamestack.Rectangle = Rectangle;
 
 
 
+//span includes a min and max, which may be any of the following:
+
+//1. opacity 0-1 OR any float of 0-1
+
+//2. vector(x,y,z?)
+
+//3. hex-color-string such as #FFFFFF
+
+//4. numeric bounds of negative-any-number to positive-any-number
+
+class Span
+{
+    constructor(min, max)
+    {
+
+        this.min = min;
+
+        this.max = max;
+
+        //handle vector instance:
+
+        if(typeof(min) == 'object' && min.hasOwnProperty('x') &&
+            typeof(max) == 'object' && max.hasOwnProperty('x') )
+        {
+            this.min = new Gamestack.Vector(min);
+            this.max = new Gamestack.Vector(max);
+        }
+
+    }
+}
+
+Gamestack.Span = Span;
+
+
 /**
  * Takes the min and max vectors plus termPoint ('termination-point'), returns VectorFrameBounds
  *  *use this to define the bounds of an Animation object.
@@ -53,7 +87,7 @@ class VectorFrameBounds extends Rectangle {
 
         super(min, max);
 
-        this.termPoint = termPoint || new Gamestack.Vector(this.max.x, this.max.y, this.max.z);
+        this.termPoint = new Gamestack.Vector(termPoint || new Gamestack.Vector(this.max.x, this.max.y, this.max.z));
 
     }
 

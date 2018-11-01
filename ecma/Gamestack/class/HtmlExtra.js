@@ -30,6 +30,7 @@ class HtmlExtra //to do apply a super object 'Extra'
     }
 
     applyCSSArgs(args) {
+
         var norms = Gamestack.normalArgs(args);
 
         this.widthFloat = Gamestack.getArg(norms, ['width', 'widthfloat', 'w'], 0.5);
@@ -189,6 +190,12 @@ class HtmlExtra //to do apply a super object 'Extra'
         this.domElement.style.color= c;
 
         return this;
+    }
+
+    Border(b)
+    {
+        this.domElement.style.border = b;
+
     }
 
     get_float_pixels(float, dimen) {
@@ -567,30 +574,90 @@ class BarDisplay extends HtmlExtra { //show BarDisplay as in 'health-bar'
 
         super(args);
 
-
         this.border = args.border || "none";
 
-        if (args.fill_src) {
-            this.fill = new BarFill(args.fill_src).width(args.fill_width || "80px").height(args.fill_height || "10px");
-        }
-        else {
-            this.fill = args.fill || new BarFill(args.fill_color || 'green').width(args.fill_width || "80px").height(args.fill_height || "10px");
+        this.inner = args.src || args.inner || 'darkorange';
+
+        this.outer = args.outer_src || args.outer || 'transparent';
+
+        this.width = args.width + ''  || args.fill_width + '';
+
+        if(this.width.indexOf('px') == -1)
+        {
+            this.width += 'px';
         }
 
-        if (args.bar_src) {
-            this.bar = new Bar(args.bar_src, this.border).width(args.bar_width || "80px").height(args.bar_height || "10px");
+        this.height = args.height + ''  || args.fill_height + '';
+
+        if(this.height.indexOf('px') == -1)
+        {
+            this.height += 'px';
         }
-        else {
-            this.bar = new Bar(args.bar_color || 'goldenrod', this.border).width(args.bar_width || "80px").height(args.bar_height || "10px");
-        }
+
+        this.color = args.color  || args.fill_color;
+
+        this.CreateDom();
+
+
+    }
+
+    CreateDom()
+    {
+
+        this.innerDom = new BarFill(this.inner).width(this.width || "80px").height(this.height || "10px");
+
+        this.fill = this.innerDom;
+
+        this.outerDom = new Bar(this.outer, this.border).width(this.width || "80px").height(this.height || "10px");
+
+        this.bar = this.outerDom;
+
+    }
+
+    Inner(color_or_src)
+    {
+        this.inner = color_or_src;
+
+        this.CreateDom();
+
+        return this;
+    }
+
+    Outer(color_or_src)
+    {
+        this.outer = color_or_src;
+
+        this.CreateDom();
+
+        return this;
+    }
+
+    Border(css_border)
+    {
+      this.border = css_border;
+
+      this.CreateDom();
+
+      return this;
 
     }
 
     show() {
 
-        document.body.append(this.fill.domElement);
+        document.body.append(this.innerDom.domElement);
 
-        document.body.append(this.bar.domElement);
+        document.body.append(this.outerDom.domElement);
+
+        return this;
+    }
+
+    Show() { //same as lc show()
+
+        document.body.append(this.innerDom.domElement);
+
+        document.body.append(this.outerDom.domElement);
+
+        return this;
     }
 
     get_float_pixels(float, dimen) {

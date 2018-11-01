@@ -36,17 +36,17 @@
 
                 this.image = new Gamestack.GameImage(args);
 
-
                 var __inst = this;
 
                 var img = this.image.domElement;
 
+                if(typeof img == 'object' && img.onload)
                 img.onload = function () {
 
                     __inst.singleFrame();
 
                     if (__inst.after_load) {
-                        __inst.after_load();
+                        __inst.after_load(__inst);
                     }
                 };
 
@@ -66,14 +66,14 @@
                 if (typeof(arg2) == 'object' && arg2.hasOwnProperty('x') && arg2.hasOwnProperty('y')) //image plus 'size' argument
                 {
 
-                    this.size = arg2;
+                    this.size = new Gamestack.Vector(arg2);
 
                 }
             }
 
 
             if (typeof(arg2) == 'object' && arg2.hasOwnProperty('x')) {
-                this.size = arg2;
+                this.size = new Gamestack.Vector(arg2);
             }
 
             Gamestack.Extendors.spatial(this);
@@ -125,7 +125,10 @@
 
             this.scrollFactor = args.scrollFactor || 1.0;
 
-            this.speed = Gamestack.getArg(args, 'speed', new Gamestack.Vector(0, 0, 0));
+
+            this.noScroll = args.noScroll || true;
+
+            this.speed =  new Gamestack.Vector(Gamestack.getArg(args, 'speed', new Gamestack.Vector(0, 0, 0)));
 
             this.size = new Gamestack.Vector(Gamestack.getArg(args, 'size', new Gamestack.Vector(0, 0)));
 
@@ -138,11 +141,11 @@
 
             this.acceleration = Gamestack.getArg(args, 'acceleration', new Gamestack.Vector(0, 0, 0));
 
-            this.rot_speed = Gamestack.getArg(args, 'rot_speed', new Gamestack.Vector(0, 0, 0));
+            this.rot_speed =  new Gamestack.Vector(Gamestack.getArg(args, 'rot_speed', new Gamestack.Vector(0, 0, 0)));
 
-            this.rot_accel = Gamestack.getArg(args, 'rot_accel', new Gamestack.Vector(0, 0, 0));
+            this.rot_accel =  new Gamestack.Vector(Gamestack.getArg(args, 'rot_accel', new Gamestack.Vector(0, 0, 0)));
 
-            this.padding = Gamestack.getArg(args, 'padding', new Gamestack.Vector(0, 0, 0));
+            this.padding =  new Gamestack.Vector(Gamestack.getArg(args, 'padding', new Gamestack.Vector(0, 0, 0)));
 
 
             var __inst = this;
@@ -300,6 +303,24 @@
 
 
         }
+
+
+        Scrollable(scroll)
+        {
+
+            if(scroll !== false)
+            {
+                this.noScroll = false;
+            }
+            else
+            {
+                this.noScroll = true;
+            }
+
+            return this;
+
+        }
+
 
         /**
          * This function extends the init() function. Takes single function() argument OR single string argument
@@ -936,6 +957,7 @@
          **********/
 
         shoot(options, gw) {
+
             //character shoots an animation
 
             gw = gw || Gamestack.game_windows[0];
@@ -951,6 +973,23 @@
 
             let position = new Gamestack.Vector(options.position) || new Gamestack.Vector(this.position);
 
+            if(options.offset instanceof Gamestack.Vector)
+            {
+                var offset = options.offset;
+
+                if(this.flipY)
+                {
+                  position =  new Gamestack.Vector(position.x + offset.x, position.y - offset.y);
+                }
+                else
+                {
+                    position = this.flipX ?  new Gamestack.Vector(position.x - offset.x, position.y + offset.y) : position.add(options.offset);
+
+                }
+
+
+            }
+
 
             let rot_offset = options.rot_offset || options.rotation || 0;
 
@@ -963,6 +1002,7 @@
             let curve_key = options.curve_key || 'quintic';
 
             let life = options.life || 900;
+
 
             var shots = [];
 
@@ -980,9 +1020,9 @@
 
                         position: new Gamestack.Vector(position),
 
-                        size: new Gamestack.Vector(size),
+                        animation:animation,
 
-                        speed: speed,
+                        size: new Gamestack.Vector(size),
 
                         image: animation.image,
 
@@ -1000,6 +1040,23 @@
 
                     rot_offset = new Gamestack.Vector(rot_offset, 0, 0);
 
+                    if(this.flipX)
+                    {
+                        //transpose rotation offset over -90;
+
+                        if(rot_offset.x < 0) {
+
+                            rot_offset.x = -90 - Math.abs(90 - Math.abs(rot_offset.x));
+
+                        }
+                        else
+                        {
+                            rot_offset.x = 90 + Math.abs(90 - Math.abs(rot_offset.x));
+
+                        }
+
+                    }
+
                     shot.position.x = bx, shot.position.y = by;
 
                     //Danger On this line: annoying math --dispersing rotation of bullets by rot_disp
@@ -1013,7 +1070,6 @@
                     shot.origin = new Gamestack.Vector(position);
 
                     shot.speed = new Gamestack.Vector(Math.cos((shot.rotation.x) * 3.14 / 180) * speed, Math.sin((shot.rotation.x) * 3.14 / 180) * speed);
-
 
                     shots.push(shot);
 
@@ -1036,6 +1092,8 @@
                             .MaxSize(2000).Growth(1.5).Rotate(r).Fill();
 
                         shot.onUpdate(function (spr) {
+
+                            spr.selected_animation.continuous();
 
                             spr.ticker += 1;
 
@@ -1694,6 +1752,7 @@
          **********/
 
         restoreFrom(data) {
+
             data.image = new GameImage(data.src || data.image.src);
 
             return new Gamestack.Sprite(data);
@@ -1732,304 +1791,257 @@
     }
     ;
 
+
     /****************
      * TODO : Complete SpritePresetsOptions::
      *  Use these as options for Sprite Control, etc...
      ****************/
 
-    Gamestack.Sprite = Sprite;
 
-    let SpriteInitializersOptions = {
 
-        Clastics: {
+        //SpriteInit: A gamestack method of initializing Sprites with behaviors.
+        //meant for auto-setting of Sprite behaviors from GS-PC-Tools
 
-            top_collideable: function (sprite) {
+    class SpriteInit
+    {
 
-                for (var x in Gamestack.__gameWindow.forces) {
-                    var force = Gamestack.__gameWindow.forces[x];
+        constructor(args={})
+        {
 
-                    force.topClastics.push(sprite);
 
-                }
-
-
-                sprite.onUpdate(function () {
-
-
-                });
-
-            },
-
-            fourside_collideable: function (sprite) {
-
-                for (var x in Gamestack.__gameWindow.forces) {
-                    var force = Gamestack.__gameWindow.forces[x];
-
-                    force.clasticObjects.push(sprite);
-
-                }
-
-                sprite.onUpdate(function () {
-
-
-                });
-
-
-            }
-        },
-
-        MainGravity: {
-
-            very_light: function (sprite, gw) {
-
-                gw = gw || Gamestack.game_windows[0];
-                //Add a gravity to the game
-
-                var gravity = gw.add(new Gamestack.Force({
-                    name: "very_light_grav",
-                    accel: 0.05,
-                    max: new Gamestack.Vector(0, 3.5, 0),
-                    subjects: [sprite], //sprite is the subject of this Force, sprite is pulled by this force
-                    clasticObjects: [] //an empty array of collideable objects
-
-                }));
-
-                sprite.onUpdate(function () {
-
-
-                });
-
-            },
-
-            light: function (sprite, gw) {
-
-                gw = gw || Gamestack.game_windows[0];
-
-                var gravity = gw.add(new Gamestack.Force({
-                    name: "light_grav",
-                    accel: 0.1,
-                    max: new Gamestack.Vector(0, 4.5, 0),
-                    subjects: [sprite], //sprite is the subject of this Force, sprite is pulled by this force
-                    clasticObjects: [] //an empty array of collideable objects
-
-                }));
-
-
-                sprite.onUpdate(function () {
-
-
-                });
-
-            },
-
-            medium: function (sprite, gw) {
-
-                gw = gw || Gamestack.game_windows[0];
-
-                var gravity = gw.add(new Gamestack.Force({
-                    name: "medium_grav",
-                    accel: 0.2,
-                    max: new Gamestack.Vector(0, 7.5, 0),
-                    subjects: [sprite], //sprite is the subject of this Force, sprite is pulled by this force
-                    clasticObjects: [] //an empty array of collideable objects
-
-                }));
-
-
-                sprite.onUpdate(function () {
-
-
-                });
-
-            },
-
-
-            strong: function (sprite, gw) {
-
-                gw = gw || Gamestack.game_windows[0];
-
-                var gravity = gw.add(new Gamestack.Force({
-                    name: "strong_grav",
-                    accel: 0.4,
-                    max: new Gamestack.Vector(0, 10.5, 0),
-                    subjects: [sprite], //sprite is the subject of this Force, sprite is pulled by this force
-                    clasticObjects: [] //an empty array of collideable objects
-
-                }));
-
-                sprite.onUpdate(function () {
-
-
-                });
-
-            },
-
-            very_strong: function (sprite, gw) {
-
-                gw = gw || Gamestack.game_windows[0];
-
-                var gravity = gw.add(new Gamestack.Force({
-                    name: "strong_grav",
-                    accel: 0.5,
-                    max: new Gamestack.Vector(0, 12.5, 0),
-                    subjects: [sprite], //sprite is the subject of this Force, sprite is pulled by this force
-                    clasticObjects: [] //an empty array of collideable objects
-
-                }));
-
-                sprite.onUpdate(function () {
-
-
-                });
-
-            },
-
-        },
-
-
-        ControllerStickMotion: {
-
-            player_move_x: function (sprite) {
-
-                alert('applying initializer');
-
-                console.log('side_scroll_player_run:init-ing');
-
-                let __lib = Gamestack || Quick2d;
-
-                Gamestack.GamepadAdapter.on('stick_left', 0, function (x, y) {
-
-                    console.log('stick-x:' + x);
-
-                    if (Math.abs(x) < 0.2) {
-                        return 0;
-                    }
-
-                    var accel = 0.2; //todo : options for accel
-                    var max = 7;
-
-                    sprite.accelX(accel, x * max);
-
-                    if (x < -0.2) {
-                        sprite.flipX = true;
-
-                    }
-                    else if (x > 0.2) {
-                        sprite.flipX = false;
-
-                    }
-
-                });
-
-                sprite.onUpdate(function (spr) {
-
-                    spr.decelX(0.1);
-
-                    if (!spr.__falling) {
-                        spr.decelY(0.2)
-                    }
-                    ;
-
-                });
-
-
-            },
-
-            player_move_xy: function (sprite) {
-
-                alert('applying initializer');
-
-                console.log('side_scroll_player_run:init-ing');
-
-                let __lib = Gamestack || Quick2d;
-
-                Gamestack.GamepadAdapter.on('stick_left', 0, function (x, y) {
-
-                    console.log('stick-x:' + x);
-
-                    if (Math.abs(x) < 0.2) {
-                        x = 0;
-                    }
-
-                    if (Math.abs(y) < 0.2) {
-                        y = 0;
-                    }
-
-                    var accel = 0.2; //todo : options for accel
-                    var max = 7;
-
-                    sprite.accelX(accel, x * max);
-
-                    sprite.accelY(accel, y * max);
-
-                    if (x < -0.2) {
-                        sprite.flipX = true;
-
-                    }
-                    else if (x > 0.2) {
-                        sprite.flipX = false;
-
-                    }
-
-                });
-
-                sprite.onUpdate(function (spr) {
-
-                    sprite.decel(sprite.speed, 'x', 0.1);
-
-                    sprite.decel(sprite.speed, 'y', 0.1);
-
-                });
-
-
-            },
-
-            player_rotate_x: function (sprite) {
-
-                let __lib = Gamestack || Quick2d;
-
-                Gamestack.GamepadAdapter.on('stick_left', 0, function (x, y) {
-
-                    console.log('stick-x:' + x);
-
-                    if (Math.abs(x) < 0.2) {
-                        return 0;
-                    }
-
-                    var accel = 0.25; //todo : options for accel
-                    var max = 7;
-
-                    sprite.accel(sprite.rot_speed, 'x', accel, x * max);
-
-                    if (x < -0.2) {
-                        sprite.flipX = true;
-
-                    }
-                    else if (x > 0.2) {
-                        sprite.flipX = false;
-
-                    }
-
-                });
-
-                sprite.onUpdate(function (spr) {
-
-                    sprite.decel(sprite.rot_speed, 'x', 0.1);
-
-                    if (!spr.__falling) {
-                        spr.decelY(0.2)
-                    }
-                    ;
-
-                });
-
-
-            }
 
 
         }
 
+
+
+
     };
+
+    function ControllerTestOptionArgs(args)
+    {
+        args= args || {};
+
+        this.accel = args.accel || 0.2;
+
+        this.decel = args.decel || 0.2;
+
+        this.max = args.max || 5.0;
+
+        this.flipX = args.flipX || false; //flipX on negativeX
+
+        this.flipY = args.flipY || false; //flipY on negativeY
+
+        this.threshold = args.threshold || 0.2; //minimum ctrl_stick value
+
+    };
+
+
+    function SimpleGravityArgs(args)
+    {
+        args= args || {};
+
+        this.accel = args.accel || 0.2;
+
+        this.max = args.max || 5.0;
+
+    };
+
+
+
+    Sprite.prototype.GravityTestOptionArgs = function(args)
+    {
+
+        this.accel = args.accel || args.gravity || 0.2;
+
+        this.max = args.max || new Gamestack.Vector(0, 10, 0);
+
+    };
+
+    Gamestack.Sprite = Sprite;
+
+
+    let SpriteInitializersOptions = {
+
+        ControllerTestOptions : {
+
+            __args:new ControllerTestOptionArgs(),
+
+            stick_move_x: function (sprite, optionArgs = new ControllerTestOptionArgs({flipX:true})) {
+
+                alert('applying controller-test options');
+
+                Gamestack.GamepadAdapter.on("stick_left", 0, function (x, y) {
+
+                    console.log('stick movement:');
+
+                    var THRESHOLD = optionArgs.threshold || 0.2;
+
+                    if (Math.abs(x) < THRESHOLD) {
+                        sprite.movingX = false;
+                        return 0;
+                    }
+
+                    sprite.movingX = true;
+
+                    var accel = optionArgs.accel || 0.2; //todo : options for accel
+                    var max = optionArgs.max || 7;
+
+                    sprite.accelX(accel, x * max);
+
+                    if (x < -THRESHOLD && optionArgs.flipX) {
+                        sprite.flipX = true;
+
+                    }
+                    else if (x > THRESHOLD && optionArgs.flipX) {
+
+                        sprite.flipX = false;
+
+                    }
+
+                });
+
+                sprite.onUpdate(function (spr) {
+
+                    if(!spr.movingX){spr.decelX(0.1)};
+
+                });
+
+
+            },
+
+            stick_move_y: function (sprite, optionArgs = new ControllerTestOptionArgs()) {
+
+                alert('applying controller-test options');
+
+                Gamestack.GamepadAdapter.on('stick_left', 0, function (x, y) {
+
+                    console.log('stick movement:');
+
+                    var THRESHOLD = optionArgs.threshold || 0.2;
+
+                    if (Math.abs(y) < THRESHOLD) {
+
+                        sprite.movingY = false;
+
+                        return 0;
+                    }
+
+
+                    sprite.movingY = true;
+
+                    var accel = optionArgs.accel || 0.2; //todo : options for accel
+                    var max = optionArgs.max || 7;
+
+                    sprite.accelY(accel, y * max);
+
+                    if (y < -THRESHOLD && optionArgs.flipY) {
+
+                        sprite.flipY = true;
+
+                    }
+                    else if (y > THRESHOLD && optionArgs.flipY) {
+
+                        sprite.flipY = false;
+
+                    }
+
+                });
+
+                var decel = optionArgs.decel || 0.2;
+
+                sprite.onUpdate(function (spr) {
+
+                    if (!spr.__falling && !spr.movingY) {
+                        spr.decelY(decel)
+                    }
+                    ;
+
+                });
+            }
+
+        },
+
+        MainGravity: {
+
+            __args:new SimpleGravityArgs(),
+
+            basic2D_gravity: function (sprite, gravityArgs = new SimpleGravityArgs()) {
+
+                var gw =Gamestack.game_windows[0];
+                //Add a gravity to the game
+
+                var gravity = gw.add(new Gamestack.Force({
+
+                    accel: gravityArgs.accel ||  0.05,
+
+                    max: gravityArgs.max || new Gamestack.Vector(0, 3.5, 0),
+
+                    subjects: [sprite], //sprite is the subject of this Force, sprite is pulled by this force
+                    clasticObjects: [] //an empty array of collideable objects
+
+                }));
+
+                sprite.onUpdate(function () {
+
+
+                });
+
+            }
+        },
+
+    collision : {
+
+        fourway_stop:function (sprite) {
+
+            sprite = sprite || __inst;
+
+            sprite.collision_settings.Fourway();
+
+            var gameWindow = Gamestack.game_windows[0];
+
+            for (var x in gameWindow.forces) {
+
+                var force = gameWindow.forces[x];
+
+                force.clasticObjects.push(sprite);
+
+            }
+
+            sprite.onUpdate(function () {
+
+
+            });
+
+        }
+    ,
+
+        top_stop:function (sprite) {
+
+            sprite = sprite || __inst;
+
+            sprite.collision_settings.Top();
+
+            var gameWindow = Gamestack.game_windows[0];
+
+            for (var x in gameWindow.forces) {
+
+                var force = gameWindow.forces[x];
+
+                force.clasticObjects.push(sprite);
+
+            }
+
+            sprite.onUpdate(function () {
+
+
+            });
+
+        }
+    }
+
+    };
+
 
 
     Gamestack.Sprite = Sprite;

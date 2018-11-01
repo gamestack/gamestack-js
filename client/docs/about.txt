@@ -1,0 +1,11 @@
+Developer Notes: How to do docs:
+
+have grunt output to the outputhtml folder.
+
+Take html files (html only) and paste here)
+
+*There was a problem with styles and fonts / etc.. directiories being wrong.
+
+Luckily the html is still working.
+
+If problem persists or becomes worse, go back to the grunt/jsdocs from before 11/2017

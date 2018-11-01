@@ -26,9 +26,8 @@ var THREE_EXT = {
 
 class Three extends Gamestack.Sprite //dependency: THREE.js
 {
-    constructor(args={})
-    {
-        super(args); //init as Sprite()
+    constructor(args = {}, arg2, arg3) {
+        super(args, arg2, arg3); //init as Gamestack.Sprite()
 
        if(!THREE) //THREE.js library must be loaded
        {

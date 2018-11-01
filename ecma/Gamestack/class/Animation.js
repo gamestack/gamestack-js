@@ -51,15 +51,16 @@
 
         this.frameSize = new Gamestack.Vector(args.frameSize || new Gamestack.Vector(0, 0));
 
+        if(this.image && this.image.domElement) {
 
-        this.image.domElement.onload = function()
-        {
-            if(__inst.frameSize.x == 0 && __inst.frameSize.y == 0)
-            {
+            this.image.domElement.onload = function () {
+                if (__inst.frameSize.x == 0 && __inst.frameSize.y == 0) {
 
-                __inst.frameSize = new Gamestack.Vector(imgDom.width, imgDom.height);
+                    __inst.frameSize = new Gamestack.Vector(imgDom.width, imgDom.height);
 
+                }
             }
+
         }
 
         if (args.frameBounds && args.frameBounds.min && args.frameBounds.max) {
@@ -73,15 +74,11 @@
 
         }
 
-        this.frameOffset = this.getArg(args, 'frameOffset', new Gamestack.Vector(0, 0, 0));
-
-        this.apply2DFrames();
+        this.frameOffset = new Gamestack.Vector(this.getArg(args, 'frameOffset', new Gamestack.Vector(0, 0, 0)));
 
         this.flipX = this.getArg(args, 'flipX', false);
 
         this.cix = 0;
-
-        this.selected_frame = this.frames[0] || {};
 
         this.timer = 0;
 
@@ -90,6 +87,10 @@
         this.seesaw_mode = args.seesaw_mode || false;
 
         this.reverse_frames = args.reverse_frames || false;
+
+        this.apply2DFrames();
+
+        this.selected_frame = this.frames[0] || {};
 
         this.run_ext = args.run_ext || [];
 
@@ -138,11 +139,51 @@
 
     }
 
+    // class can be instantiated by chainables: Animation().FrameSize(arg).FrameBounds(min, max).Populate();
+
+        Image(img)
+        {
+            var src;
+
+            if(typeof(img) == 'object' && img.src)
+                src = img.src;
+            else
+                src = img;
+
+            this.image = new Gamestack.GameImage(src);
+
+            return this;
+        }
+
+    FrameSize(fs)
+    {
+        this.frameSize = new Gamestack.Vector(fs);
+        return this;
+    }
+
+    FrameBounds(min, max, termPoint)
+    {
+        this.frameBounds = new Gamestack.VectorFrameBounds(min, max, termPoint || max);
+
+        return this;
+    }
+
+    Populate()
+    {
+
+        this.apply2DFrames();
+
+        return this;
+
+    }
+
     singleFrame(frameSize) {
+
+        this.frames = [];
 
         this.__frametype = 'single';
 
-        this.frameSize = frameSize || this.frameSize;
+        this.frameSize = frameSize || new Gamestack.Vector(this.image.domElement.width, this.image.domElement.height);
 
         this.selected_frame = {
             image: this.image,
@@ -186,7 +227,7 @@
                     y: y * this.frameSize.y + this.frameOffset.y
                 };
 
-                this.frames.push({image: this.image, frameSize: this.frameSize, framePos: framePos});
+                this.frames.push({image: this.image, frameSize: this.frameSize, framePos: new Gamestack.Vector(framePos)});
 
                 if (x >= this.frameBounds.termPoint.x && y >= this.frameBounds.termPoint.y) {
 
@@ -250,7 +291,7 @@
 
         }
 
-        this.apply2DFrames();
+       // this.apply2DFrames();
 
         //update once:
         this.update();
@@ -310,7 +351,7 @@
 
     animate() {
 
-        this.apply2DFrames();
+       // this.apply2DFrames();
 
         this.timer += 1;
 

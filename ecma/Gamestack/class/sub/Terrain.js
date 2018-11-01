@@ -6,16 +6,14 @@
 
 class Terrain extends Gamestack.Sprite
 {
-    constructor(args={})
-    {
-        super(args); //init as Gamestack.Sprite()
+    constructor(args = {}, arg2, arg3) {
+        super(args, arg2, arg3); //init as Gamestack.Sprite()
 
-        this.collision_settings = new Gamestack.CollisionSettings(args);
+        this.collision_settings = new Gamestack.CollisionSettings().Fourway().Stop();
 
         this.collideables = args.collideables || args.colliders || [];
 
         Gamestack.Extendors.collideable(this, args); //overwrites the onCollide():
-
 
     }
 

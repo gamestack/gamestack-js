@@ -27,6 +27,7 @@
         header img {
 
             position:relative;
+
             left:35%;
 
 
@@ -122,9 +123,6 @@
 
 
 
-
-
-
         //create some animations and sounds within an object:
 
         var GameAssets = {
@@ -169,7 +167,7 @@
 
             Sound: {
 
-                collect_item:new Sound('sounds/collect_item.mp3').Volume(0.3)
+                collect_item:new Sound('sounds/collect-item.mp3').Volume(0.3)
 
             }
 
@@ -289,6 +287,8 @@
 
             tiles.each(function(ix, item){
 
+                item.Scrollable();
+
                 levelTiles.push(item); //add to levelTiles[]
 
             });
@@ -325,7 +325,7 @@
 
                 if (x) {
 
-                    var targetJumpY = Math.round(player.position.y - __gameStack.HEIGHT / 2.5);
+                    var targetJumpY = Math.round(player.position.y - 300);
 
                     if (player.state !== 'jumping' && !player.__inAir) {
 
@@ -365,6 +365,7 @@
             });
 
 
+            player.Scrollable();
 
 
             player.total_apples = 0;
@@ -559,7 +560,15 @@
 
             var apples = $Q('.Sprite[type=basic_item]');
 
-            //collision of player to any apple
+                Gamestack.each(apples, function(ix, item){
+
+                  if(item.Scrollable){  item.Scrollable(); }
+
+                });
+
+
+
+                //collision of player to any apple
 
             $Q('.Sprite[type=player]').on('collide', apples, function(obj1, obj2){
 
@@ -694,7 +703,7 @@
             player.padding = new Vector(0.2, 0.1); //vector of 0-1 values for collision padding (transparency of sprite-images calls for padding in collision-processing)
 
                 //play a single song on repeat
-                var song = new Sound('sounds/songs/happy_song.mp3').volume(0.1);
+                var song = new Sound('sounds/songs/happy-song.mp3').volume(0.1);
 
                 song.Loop().Play();
 

@@ -39,6 +39,8 @@ class GSProton {
 
         args.image = args.image || new Gamestack.GameImage;
 
+        this.parent = args.parent;
+
         this.name = args.name || "__NO-Name";
 
         this.description = args.description || "__NO-Description";
@@ -134,9 +136,9 @@ class GSProton {
 
         this.lifeMax = 10;
 
-        for(var x in this)
+        for(var x in args)
         {
-            if(args.hasOwnProperty(x))
+            if(this.hasOwnProperty(x))
             {
 
                 this[x] = args[x];
@@ -244,6 +246,26 @@ class GSProton {
 
     }
 
+    Pos(p)
+    {
+        if(typeof p == 'object')
+        {
+            this.emitter.p.x = p.x;
+
+            this.emitter.p.y = p.y;
+
+        }
+
+        else if (typeof p == 'number')
+        {
+
+            this.emitter.p.x = p;
+
+            this.emitter.p.y = p;
+        }
+
+    }
+
     update(collideables) {
 
         collideables = collideables || this.collideables || [];
@@ -307,7 +329,7 @@ class GSProton {
 
     init() {
 
-        this.proton = new Proton;
+        this.proton = new Gamestack.Proton();
 
         this.emit_mode = this.emit_mode || "";
 
@@ -447,24 +469,42 @@ class GSProton {
 
     on()
     {
+        this.isOn = true;
+
         this.init();
     }
 
     off()
     {
-       if(this.emitter && this.emitter.stopEmit)
-           this.emitter.stopEmit();
+
+        this.isOn = false;
+
+        if(this.renderer) {
+
+            console.info('Stopping one GSProton object');
+
+            this.renderer.stop();
+
+
+        }
+
     }
 
     tick() {
+
+
+        var __inst = this;
+
 
         requestAnimationFrame(function () {
             __inst.tick()
         });
 
-        var __inst =  this;
+        if(this.isOn) {
 
             this.proton.update();
+
+        }
        // this.update();
     }
 

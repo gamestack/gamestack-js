@@ -4,7 +4,18 @@
     <meta charset="UTF-8">
     <title>Space-Game-Demo</title>
 
-    <script src="../dist/js/Gamestack.js"></script>
+    <script src="../dist/js/GameStack.js"></script>
+
+    <style>
+
+        body
+        {
+
+        overflow:hidden;
+
+        }
+
+    </style>
 
 </head>
 <body>
@@ -12,9 +23,10 @@
 
     var $GS = Gamestack, Background = $GS.Background;
 
-    //player && enemy Sprite() start undefined and public
+    var backgroundStars = [], meteorites = [], backgroundPlanets = [], backgroundNebulas = []; //just copies for copying
 
-    var players, enemies, backgroundStars = [], backgroundPlanets = [], backgroundNebulas = [];
+    var activeMeteors = []; //real sprites in game
+
 
     //When engine is ready...
 
@@ -24,17 +36,40 @@
 
         sounds: {
 
-            shot: new $GS.Sound("sounds/shot.mp3")
+            shot: new $GS.Sound("sounds/shot.mp3"),
+
+            powerup1: new $GS.Sound("sounds/powerup-1.mp3"),
+
+            powerup2: new $GS.Sound("sounds/powerup-1.mp3"),
+
+            crash1: new $GS.Sound("sounds/crash-1.mp3"),
+
+            crash2: new $GS.Sound("sounds/crash-2.mp3"),
+
+            ambient1: new $GS.Sound("sounds/ambient/ambient-1.mp3").volume(0.7),
+
+            ambient2: new $GS.Sound("sounds/ambient/ambient-2.mp3").volume(0.7)
 
         },
 
         weapon_animations: {
 
             normal_bullet: new $GS.Animation({
-                src: "images/bullet.png",
-                frameSize: new $GS.Vector(22, 22, 0),
-                frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(0, 0), new $GS.Vector(0, 0))
+                src: "images/shots/shot1.png",
+                frameSize: new $GS.Vector(65, 65, 0),
+                frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(0, 0), new $GS.Vector(11, 0))
             })
+
+        },
+
+        powerups:{
+
+            shotPower: new $GS.Animation({
+                src: "images/shots/shot-powerup.png",
+                frameSize: new $GS.Vector(65, 65, 0),
+                frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(0, 0), new $GS.Vector(11, 0))
+            })
+
 
         },
 
@@ -44,6 +79,19 @@
                 src: "images/explosions/explosion.png",
                 frameSize: new $GS.Vector(128, 128, 0),
                 frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(0, 0), new $GS.Vector(5, 4), new $GS.Vector(5, 4))
+            })
+            ,
+
+            explosion_meteor: new $GS.Animation({
+                src: "images/explosions/dandelion-explosion.png",
+                frameSize: new $GS.Vector(256, 256, 0),
+                frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(0, 0), new $GS.Vector(6, 5), new $GS.Vector(6, 5))
+            }),
+
+            explosion_meteor_green: new $GS.Animation({
+                src: "images/explosions/green-blast.png",
+                frameSize: new $GS.Vector(256, 256, 0),
+                frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(0, 0), new $GS.Vector(50, 0))
             })
         }
 
@@ -62,6 +110,141 @@
 
         },
 
+        addMeteorites:function(){
+
+            var mod = this.ticker % 300;
+
+            if(mod > 100 && this.ticker % 20 == 0)
+            {
+                var mix = Math.round(Math.random() * 12) + 1;
+
+                var meteor = new Gamestack.Sprite(meteorites[mix]);
+
+                meteor.speed.y = Math.round(Math.random() * 10) + 1;
+
+                var posX = Math.random() * gameWindow.canvas.width,
+
+                    posY = -300;
+
+                var sf = 1.0;
+
+                meteor.size = new Gamestack.Vector(meteor.image.domElement.width * sf, meteor.image.domElement.height * sf);
+
+                while(meteor.size.x >= gameWindow.canvas.width / 8)
+                {
+                    sf -= 0.05;
+
+                    meteor.size = new Gamestack.Vector(meteor.image.domElement.width * sf, meteor.image.domElement.height * sf);
+                }
+
+
+                meteor.noScroll = true;
+
+                meteor.position = new Gamestack.Vector(posX, posY);
+
+
+                meteor.life = 1000;
+
+                meteor.speed.x = (posX - gameWindow.canvas.width / 2) * -0.01;
+
+                meteor.rot_speed.x = Math.random() * 4 * 100 / 100;
+
+                meteor.explode = METEOR_EXPLODE; //meteor has explode function
+
+                meteor.shatter = METEOR_SHATTER;
+
+                if(Math.random() * 30 < 29) {
+
+                    meteor.explosion_animation = new Gamestack.Animation(GameAssets.damage_animations.explosion_meteor);
+
+                }
+                else
+                {
+                    meteor.explosion_animation = new Gamestack.Animation(GameAssets.damage_animations.explosion_meteor_green);
+
+                    meteor.hasPowerup = true;
+
+                }
+
+                meteor.health = 4;
+
+                meteor.onUpdate(function(spr){
+
+                   // console.log(spr.life);
+
+
+                });
+
+                activeMeteors.push(meteor);
+
+                for(var x =0; x < activeMeteors.length; x++)
+                {
+                    if(activeMeteors[x].isDead() || activeMeteors[x].active == false)
+                    {
+
+                        //alert('removing meteor');
+                        activeMeteors.splice(x, 1);
+
+                    }
+
+                }
+
+                var MPCollide =  new $GS.CollisionEvent(player, activeMeteors,
+
+                    function(obj1, obj2){
+
+                    if(obj2.active && !obj1.flickering) { //if 'alive'
+
+                        var sound = sound || new $GS.Sound(GameAssets.sounds.crash1).volume(0.4);
+
+                        sound.play();
+
+                        obj1.health -= 20;
+
+                        if(obj1.health < 1)
+                        {
+
+                            player.explode();
+
+
+                            var text = new $GS.TextDisplay()
+                                .FontSize('30px')
+                                .Color('goldenrod')
+                                .Top(0.5)
+                                .Duration(3000)
+                                .Text("Game Over");
+
+                            player.health_bar.update(0);
+
+                            //add onComplete update for first text:
+
+                            text.onComplete(function () {
+
+                                window.location.reload();
+
+                            });
+
+                            text.show();
+
+                            obj1.health = 1;
+                        }
+
+                        obj1.ShowFlickerEffect(500);
+
+                    }
+
+                    }
+
+                );
+
+
+                gameWindow.add(meteor);/*add */
+
+            }
+
+
+        },
+
         addStarBackgrounds:function(){
 
             if(this.ticker % 800 == 0)
@@ -69,7 +252,7 @@
                 var pix = Math.round(Math.random() * 12) + 1;
 
                 var planet = new Background(backgroundPlanets[pix])
-                    .ScrollFactor(0.8)
+                    .ScrollFactor(0.6)
                     .Life(1500);
                 //use the above ScrollFactor() function to create parallax scroll effect
                 //use the Life() function to control how long Sprite lasts
@@ -125,6 +308,8 @@
         }
     };
 
+    var Sprite = Gamestack.Sprite;
+
     for(var x = 1; x <= 12; x++)
     {
 
@@ -134,6 +319,8 @@
         backgroundPlanets.push(new Background('images/solar_system_pack/Planets/planet ('+x+').png'));
 
         backgroundNebulas.push(new Background('images/solar_system_pack/Nebula/nebula ('+x+').png'));
+
+        meteorites.push(new Sprite('images/solar_system_pack/Meteors/meteorite ('+x+').png'));
 
     };
 
@@ -145,6 +332,7 @@
 
     var gameWindow = new GameWindow();
 
+
     gameWindow.canvas.style.background = 'black';
 
     gameWindow.onUpdate(function(){
@@ -152,6 +340,8 @@
         SpaceGame.update();
 
         SpaceGame.addStarBackgrounds();
+
+        SpaceGame.addMeteorites();
 
         Gamestack.removeDeadObjects(); //remove any dead sprite
 
@@ -169,19 +359,27 @@
 
         var sprite = backgroundObjects[backgroundObjects.length - 1];
 
-        gameWindow.add(sprite);
-
     };
 
     //private reference explosion_sequence for less typing
 
-    var explosion_sequence = GameAssets.damage_animations.explosion1;
+    var explosion_sequence = GameAssets.damage_animations.explosion1,
+
+    explosion_meteor = GameAssets.damage_animations.explosion_meteor;
 
     //When exp runs...
 
     explosion_sequence.onRun(function () {
 
-        var sound = sound || new $GS.Sound('sounds/explosion.mp3').volume(0.4);
+        var sound = sound || new $GS.Sound('sounds/explosion.mp3').volume(0.5);
+
+        sound.play();
+
+    });
+
+    explosion_meteor.onRun(function () {
+
+        var sound = sound || new $GS.Sound('sounds/explosion.mp3').volume(0.2);
 
         sound.play();
 
@@ -189,7 +387,7 @@
 
 
     /**
-     * Instantiate Sprite()'s : player and enemy...
+     * Instantiate Sprite()'s : player
      */
 
     player = new $GS.Sprite(
@@ -224,114 +422,48 @@
 
 
 
-    //instantiate enemy Sprite()
 
-    enemy = new $GS.Sprite(
-        {
-            name: "enemy",
-            description: "The enemy sprite",
-            type: "enemy",
-            size: new $GS.Vector(90, 90, 0),
-            stats: {health: 100, magic: 1000}
-        }
-    );
+    player.padding = new Gamestack.Vector(0.4, 0.4);
 
 
-    enemy.position.y = 200;
-
-    enemy.position.x = 200;
-
-    enemy.rotation.x = 180;
-
-    enemy.setAnimation(new $GS.Animation({
-        src: "images/spaceship/spinship5.png",
-        type: "enemy",
-        frameSize: new $GS.Vector(90, 90, 0),
-        frameBounds: new $GS.VectorFrameBounds(new $GS.Vector(7, 0), new $GS.Vector(7, 0))
-    }));
 
 
     player.noScroll = true;
 
-    enemy.noScroll = true;
     //instantiate animation from existing animation
 
     player.explosion_animation = new $GS.Animation(GameAssets.damage_animations.explosion1);
 
-    enemy.explosion_animation = new $GS.Animation(GameAssets.damage_animations.explosion1);
 
-    enemy.timer = 0;
+    //player death / (explode)
 
-    //enemy has fly function
-
-    enemy.fly = function () {
-
-        if (this.position.y < 50) {
-
-            this.position.y += 1;
-
-        }
-        else {
-            this.timer++;
-
-            if (this.position.x < Math.round(Gamestack.WIDTH / 2)) {
-
-                this.accelX(0.2, 8);
-
-            }
-            else {
-
-                this.accelX(0.2, -8);
-
-            }
-
-        }
-
-    };
-
-
-    //fly function runs every update() (up to 50x per second) for enemy
-
-    enemy.onUpdate(function () {
-
-        enemy.fly();
-
-    });
-
-
-    //enemy death (explode)
-
-    enemy.explode = function () {
+    player.explode = function () {
 
         if (this.active) {
 
-            var explosionSize = new $GS.Vector(100, 100, 0);
+            var explosionSize = new $GS.Vector(200, 200, 0);
 
             var __inst = this;
 
-            this.active = false; //prevent mult-fire of explosion
-
+            var centerExpVector = new $GS.Vector(this.position.add(this.size.div(2)).sub(explosionSize.div(2))); //use Gamestack.Vector mathematics to center the sprite;
 
             var explosion = this.subsprite({
 
                 animation: this.explosion_animation,
 
-                size: explosionSize,
+                size: explosionSize.randomize(0.8, 1.2),
 
-                position: new $GS.Vector(this.position)
+                position: centerExpVector
 
             });
+
+            explosion.life = this.explosion_animation.frames.length * 2;
 
             this.explosion_animation.onComplete(function () {
 
                 explosion.active = false;
 
-                __inst.active = false;
-
-               gameWindow.remove(explosion);
-
                gameWindow.remove(__inst);
-
 
             });
 
@@ -342,22 +474,177 @@
 
             });
 
+            this.active = false; //prevent mult-fire of explosion
+
+            this.life = 0;
 
         }
         ;
 
     }
 
-    //player shares same 'explode' function
+    var METEOR_EXPLOSIONS = METEOR_EXPLOSIONS || [];
 
-    player.explode = enemy.explode;
+    //meteor explode function:: added as property to meteors later in execution...
+
+    var METEOR_EXPLODE = function () {
+
+        if (this.active) {
+
+            var explosionSize = new $GS.Vector(250, 250, 0).randomize(0.8, 1.2);
+
+            var __inst = this;
+
+            var centerExpVector = new $GS.Vector(this.position.add(this.size.div(2)).sub(explosionSize.div(2))); //use Gamestack.Vector mathematics to center the sprite;
+
+            METEOR_EXPLOSIONS.push(this.subsprite({
+
+                animation: this.explosion_animation ,
+
+                size: explosionSize,
+
+                position: new Gamestack.Vector(centerExpVector)
+
+            }));
+
+            var explosion = METEOR_EXPLOSIONS[METEOR_EXPLOSIONS.length - 1];
+
+            explosion.life = explosion.selected_animation.frames.length * 2;
+
+            explosion.noScroll = true;
+
+
+            explosion.rotation.x = Math.round(Math.random() * 360);
+
+            explosion.selected_animation.onComplete(function () {
+
+                __inst.active = false;
+
+                gameWindow.remove(__inst);
+
+            });
+
+            explosion.onUpdate(function (spr) {
+
+                spr.selected_animation.continuous();
+
+            });
+
+
+            if(typeof(this.shatter) == 'function')
+                this.shatter(meteorites, 3);
+
+            this.active = false;
+
+            if(this.hasPowerup)
+            {
+
+                var powerup = new $GS.Sprite(
+                    {
+                        name: "weapon-powerup",
+                        size: new $GS.Vector(30, 30, 0)
+                    }
+                );
+
+                powerup.Pos(this.center().sub(powerup.size.div(2)));
+
+                powerup.setAnimation(GameAssets.powerups.shotPower);
+
+                powerup.onUpdate(function(spr){
+
+                    spr.selected_animation.continuous();
+
+                });
+
+                powerup.speed.x = (powerup.position.x - gameWindow.canvas.width / 2) * -0.01;
+
+                powerup.speed.y = 3;
+
+                gameWindow.add(powerup);
+
+
+                var pcollide =  new $GS.CollisionEvent(player, powerup,
+
+                    function(obj1, obj2){
+
+                        if(obj2.active) {
+
+                            obj1.Weapon.totalPerShot += 1;
+
+                            obj1.Weapon.rot_disp += 10;
+
+                            obj2.active = false;
+
+                            GameAssets.sounds.powerup1.play();
+
+                            gameWindow.remove(obj2);
+
+                        }
+                    }
+
+                );
+
+            }
+
+            //shatter if is function
+
+
+        }
+        ;
+
+    }
 
 
 
+    var METEOR_SHATTER = function(shardset, totalPieces, lifeTime){
 
-    gameWindow.add(enemy);
+        if (this.active) {
+
+            for(var x =0 ; x < totalPieces; x++)
+            {
+                var spr = new Gamestack.Sprite(shardset[x % shardset.length]);
+
+
+                spr.speed = new Gamestack.Vector().rotationalSpeedPoint(Math.round(Math.random() * 360), Math.round(Math.random() * 5));
+
+                spr.speed =  new Gamestack.Vector(spr.speed.add(this.speed.div(2)));
+
+                spr.rot_speed.x = Math.random() * 5 + 1;
+
+                if(x % 2 == 0)
+                    spr.rot_speed.x *= -1;
+
+                var sizeRandomDiv = Math.round(Math.random() * (8 - 3)) + 3;
+
+                spr.size = new Gamestack.Vector(this.size.div(sizeRandomDiv));
+
+                spr.position =new Gamestack.Vector(this.center().sub(spr.size.div(2)));
+
+                spr.life = lifeTime || 900;
+
+                gameWindow.add(spr);
+
+            }
+
+        }
+        else
+        {
+            alert('INACTIVE');
+        }
+
+
+        };
+
+
+
+    //Play main sound : ambient
+
+    GameAssets.sounds.ambient1.Loop().play(); //song will play endlessly until stopped
+
 
     gameWindow.add(player);
+
+
 
 
     /**
@@ -420,7 +707,7 @@
 
         callback: function (key) {
 
-            player.fire_weapon_one();
+            player.fire_weapon();
 
         }
 
@@ -542,9 +829,26 @@
     });
 
 
+
+    player.Weapon =
+    {
+        totalPerShot:1,
+
+        intervalDuration:200,
+
+        speed:30,
+
+        selected_animation:GameAssets.weapon_animations.normal_bullet,
+
+        rot_disp:0
+
+    };
+
+
+
     //Player shoots bullets
 
-    player.fire_weapon_one = function()
+    player.fire_weapon = function()
     {
 
         if (!player.normalWeaponLocked) {
@@ -553,24 +857,37 @@
 
             var basic_shot = new Shot()
                 .Animation(GameAssets.weapon_animations.normal_bullet)
-                .Size(10) //Size Unit, also may pass Gamestack.Vector(x, y, z)
-                .Velocity(20) //speed / velocity
+                .Size(20) //Size Unit, also may pass Gamestack.Vector(x, y, z)
+                .Velocity(this.Weapon.speed) //speed / velocity
+
                 .Rotation(-90) //rotation
-                .Total(4) //total bullets
+
+                .Total(this.Weapon.totalPerShot) //total bullets
                 // .JaggedMode('linear', 5, 1.5)
-                .RotDisp(25) //rot_disp per bullet (always evenly dispersed from 0 outward by rot_disp
+                .RotDisp(this.Weapon.rot_disp) //rot_disp per bullet (always evenly dispersed from 0 outward by rot_disp
 
             basic_shot.life = 100;
 
-            var bulletPosition = player.position.add(new Gamestack.Vector(41, 5));
+            var bulletPosition = player.center().sub(new Gamestack.Vector(10, 10)); //center the bullet
 
           var shots = player.shoot(basic_shot.Position(bulletPosition));
 
-            var collision = new $GS.CollisionEvent(shots, enemy,
 
-                function(obj1, obj2){ obj2.explode(); }
+            var mcollide =  new $GS.CollisionEvent(shots, activeMeteors,
+
+                function(obj1, obj2){
+
+                    if(obj2.active) {
+
+                        obj2.explode();
+
+                        obj2.active = false;
+
+                    }
+                }
 
             );
+
 
 
             player.normalWeaponLocked = true;
@@ -584,17 +901,9 @@
 
                 player.normalWeaponLocked = false;
 
-            }, 200);
+            }, this.Weapon.intervalDuration);
 
         }
-
-        var ctoffscreen = 0;
-
-        //Clean up offscreen bullets
-
-
-
-
     };
 
 
@@ -612,7 +921,7 @@
 
         if (pressed) {
 
-            player.fire_weapon_one();
+            player.fire_weapon();
         }
 
     });
@@ -636,23 +945,92 @@
 
         // console.log('A collision has occurred');
 
-        if (!obj1.dead) {
+        if (obj2.active) {
             obj1.explode();
 
         }
 
-        if (!obj2.dead) {
+        if (obj1.active) {
             obj2.explode();
 
         }
 
     });
 
-    var collision = new $GS.CollisionEvent(player, enemy,
 
-        function(obj1, obj2){ console.info('GS-CollisionEvent'); }
 
-    );
+    //Testing SOLUTION for SpriteEffect: Player.Flicker()
+
+    player.ticker = 0;
+
+    player.flicker = function()
+    {
+        console.log('FLICKER');
+
+        this.ticker += 1;
+
+        if(this.ticker % 2 == 0) {
+
+            this.active = this.active ? false : true;
+
+        }
+    };
+
+
+    player.ShowFlickerEffect = function(duration){
+
+        this.flickering = true;
+
+        var __inst = this; //__inst is the player
+
+        window.setTimeout(function(){
+
+            __inst.flickering = false;
+
+        }, duration);
+
+    };
+
+
+    player.onUpdate(function(sprite){
+
+        if(sprite.flickering) {
+
+            sprite.flicker();
+
+        }
+        else
+        {
+            sprite.active = true;
+        }
+
+    });
+
+
+    player.health = 100;
+
+
+    player.health_bar = new Gamestack.BarDisplay()
+        .Border("1px inset teal")
+        .Inner("darkorange")
+        .Show();
+
+    player.health_bar.portion_top(0.96);
+    player.health_bar.portion_left(0.03);
+    player.health_bar.portion_width(0.1);
+    player.health_bar.portion_height(0.02);
+
+    player.health_bar.show();
+
+    //Fill / update the bar with a 0-1 portion of its width:: .75 || 75%
+    player.health_bar.update(0.75);
+
+    player.onUpdate(function(sprite){
+
+        sprite.health_bar.update(sprite.health / 100);
+
+
+    });
 
 
 

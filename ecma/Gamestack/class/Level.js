@@ -15,9 +15,18 @@ class Level
 
     }
 
-    add()
+    getListName(clName)
+{
+
+    return clName[0].toLowerCase() + clName.substring(1, clName.length) + 's';
+}
+
+    add(object)
     {
 
+        var myType = object.__classType || 'Sprite';
+
+        this[this.getListName(myType)].push(new Gamestack[myType]().restoreFrom(object));
 
     }
 

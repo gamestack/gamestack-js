@@ -20,11 +20,33 @@ class CanvasStack {
 
             __levelMaker: false,
 
+            __OFFSCREEN:false,
+
+            allowOffscreen:function(duration)
+            {
+
+                this.__OFFSCREEN = true;
+
+                var __inst = this;
+
+                if(duration) {
+
+                    window.setTimeout(function () {
+
+                        __inst.__OFFSCREEN = false;
+
+                    }, duration || 10000); //in 10 seconds set __OFFSCREEN to false
+
+                }
+
+            },
+
             draw: function (sprite, ctx, camera) {
 
                 camera = camera || Gamestack.game_windows[0].camera || {position:new Gamestack.Vector(0, 0, 0)};
 
-                if (sprite.active && (this.__levelMaker || sprite.onScreen(__gameStack.WIDTH, __gameStack.HEIGHT))) {
+                if (sprite.active && sprite.onScreen(__gameStack.WIDTH, __gameStack.HEIGHT)) {
+
 
                     this.drawPortion(sprite, ctx, camera);
 

@@ -144,6 +144,34 @@
 
         }
 
+        randomize(minFloat, maxFloat)
+        {
+
+            var random = (Math.random() * (maxFloat - minFloat) + minFloat) * 1000 / 1000;
+
+            return this.mult(random);
+
+        }
+
+        rotationalSpeedPoint(rotation, speed)
+        {
+            var r = rotation;
+
+            if(typeof(rotation) == 'object' && rotation.x)
+            {
+                r = rotation.x;
+            }
+
+           return new Gamestack.Vector(Math.cos((r) * 3.14 / 180) * speed, Math.sin((r) * 3.14 / 180) * speed);
+
+        }
+
+        angleBetween(p1, p2)
+        {
+
+            return Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+        }
+
     }
     ;
 

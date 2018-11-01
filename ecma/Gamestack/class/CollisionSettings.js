@@ -5,23 +5,55 @@
 
     class CollisionSettings
 {
-    constructor(args={})
+    constructor(top, left, bottom, right)
     {
-        this.fourway = args.fourway || args.four_way || false;
 
-        this.top = this.four_way || args.top || false;
+        this.top = top || false;
 
-        this.bottom = this.four_way || args.bottom || false;
+        this.bottom = bottom || false;
 
-        this.left = this.four_way || args.left || false;
+        this.left = left || false;
 
-        this.right = this.four_way || args.right || false;
+        this.right = right || false;
 
-        this.pixel = args.pixel || false;
+    }
 
-        this.stop = args.stop || false;
+    Fourway()
+    {
 
-        this.padding = args.padding || new Gamestack.Vector(0, 0, 0); // 0-1.0
+        this.top = true;
+
+        this.bottom = true;
+
+        this.left = true;
+
+        this.right = true;
+
+        return this;
+
+    }
+
+    Top()
+    {
+        this.top = true;
+
+        this.bottom = false;
+
+        this.left = false;
+
+        this.right = false;
+
+        this.pixel = false;
+
+        return this;
+
+    }
+
+    Stop(stop)
+    {
+       this.stop = stop || true;
+
+       return this;
 
     }
 
